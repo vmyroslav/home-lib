@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+  lint:
+    cmds:
+      - golangci-lint run -c .golangci.yml
+  test:
+    cmds:
+      - go test -timeout=60s -race -covermode=atomic -coverprofile=profile.cov ./...
+  imports:
+    cmds:
+      - goimports -w .
