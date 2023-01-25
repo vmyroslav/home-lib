@@ -1,4 +1,4 @@
-name: lint
+name: Lint and Test
 
 on:
   push:
@@ -11,7 +11,7 @@ env:
   LINT_VERSION: v1.50.x
 
 jobs:
-  lint:
+  build:
     name: lint
     runs-on: ubuntu-latest
     steps:
@@ -31,3 +31,10 @@ jobs:
       - name: Test
         run: |
           go test -timeout=60s -race -covermode=atomic -coverprofile=$GITHUB_WORKSPACE/profile.cov ./...
+
+      - name: Submit coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./unit.coverprofile
+          flags: unittests-${{ runner.os }}
+          slug: ${{ env.GITHUB_REPOSITORY }}
