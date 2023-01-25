@@ -11,8 +11,8 @@ env:
 
 jobs:
   build:
-    name: lint
     runs-on: ubuntu-latest
+
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -32,6 +32,5 @@ jobs:
       - name: Submit coverage
         uses: codecov/codecov-action@v3
         with:
-          files: ./unit.coverprofile
-          flags: unittests-${{ runner.os }}
+          files: ./profile.cov
           slug: ${{ env.GITHUB_REPOSITORY }}
