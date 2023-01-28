@@ -1,8 +1,10 @@
 package homestorage
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/require"
 	"math"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,6 +104,107 @@ func TestInMemoryStorage_Add_ExceedCapacity(t *testing.T) {
 	assert.ErrorIs(t, err, ErrCapacityExceeded)
 }
 
+func TestInMemoryStorage_All(t *testing.T) {
+	t.Parallel()
+
+	type args[T any] struct {
+		key   string
+		value T
+	}
+
+	type testCase[T any] struct {
+		name string
+		s    *InMemoryStorage[T]
+		args []args[T]
+	}
+
+	tests := []testCase[string]{
+		{
+			name: "Add one element",
+			s:    NewInMemoryStorage[string](),
+			args: []args[string]{
+				{
+					key:   "key",
+					value: "value",
+				},
+			},
+		},
+		{
+			name: "Add multiple elements",
+			s:    NewInMemoryStorage[string](WithCapacity(100)),
+			args: []args[string]{
+				{
+					key:   "key",
+					value: "value",
+				},
+				{
+					key:   "key2",
+					value: "value2",
+				},
+				{
+					key:   "key3",
+					value: "value3",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			for _, arg := range tt.args {
+				err := tt.s.Add(arg.key, arg.value)
+				require.NoError(t, err)
+			}
+
+			got, err := tt.s.All()
+			require.NoError(t, err)
+
+			assert.Equal(t, len(tt.args), len(got))
+		})
+	}
+}
+
+func TestInMemoryStorage_ConcurrentAdd(t *testing.T) {
+	t.Parallel()
+
+	s := NewInMemoryStorage[int64](WithCapacity(100))
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			err := s.Add(fmt.Sprintf("key%d", i), int64(i))
+			require.NoError(t, err)
+		}(i)
+	}
+
+	wg.Wait()
+
+	assert.Equal(t, uint64(100), s.Count())
+}
+
+func TestInMemoryStorage_Upsert(t *testing.T) {
+	t.Parallel()
+
+	s := NewInMemoryStorage[int](WithCapacity(100))
+
+	_ = s.Add("key", 1)
+	s.Upsert("key", 2)  // update existing key
+	s.Upsert("key2", 3) // add new key
+
+	got, err := s.Get("key")
+
+	require.NoError(t, err)
+	assert.Equal(t, 2, got)
+
+	got, err = s.Get("key2")
+	require.NoError(t, err)
+	assert.Equal(t, 3, got)
+}
+
 func TestInMemoryStorage_Clear(t *testing.T) {
 	t.Parallel()
 
@@ -195,8 +298,8 @@ func TestInMemoryStorage_SetLimit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.i.SetLimit(tt.limit)
-			assert.Equal(t, tt.want, tt.i.limit)
+			tt.i.SetCapacity(tt.limit)
+			assert.Equal(t, tt.want, tt.i.capacity)
 		})
 	}
 }

@@ -8,13 +8,13 @@ import (
 var (
 	ErrNotFound         = errors.New("element not found")
 	ErrAlreadyExists    = errors.New("element already exists")
-	ErrCapacityExceeded = errors.New("homestorage capacity exceeded")
+	ErrCapacityExceeded = errors.New("storage capacity exceeded")
 )
 
-// InMemoryStorage is a simple thread-safe in-memory homestorage that you can use for testing, mocking, etc.
+// InMemoryStorage is a simple thread-safe in-memory storage that you can use for testing, mocking, etc.
 type InMemoryStorage[T any] struct {
-	storage map[string]T
-	limit   uint64
+	storage  map[string]T
+	capacity uint64
 
 	mutex sync.RWMutex
 }
@@ -29,9 +29,9 @@ func NewInMemoryStorage[T any](opts ...Option) *InMemoryStorage[T] {
 	}
 
 	return &InMemoryStorage[T]{
-		storage: make(map[string]T),
-		//mutex:   sync.RWMutex{},
-		limit: cfg.capacity,
+		storage:  make(map[string]T),
+		capacity: cfg.capacity,
+		mutex:    sync.RWMutex{},
 	}
 }
 
@@ -55,7 +55,7 @@ func (i *InMemoryStorage[T]) Add(key string, value T) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
-	if len(i.storage) >= int(i.limit) {
+	if len(i.storage) >= int(i.capacity) {
 		return ErrCapacityExceeded
 	}
 
@@ -119,7 +119,7 @@ func (i *InMemoryStorage[T]) Remove(key string) error {
 	return nil
 }
 
-// Clear removes all elements from the homestorage.
+// Clear removes all elements from the storage.
 func (i *InMemoryStorage[T]) Clear() {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -127,7 +127,7 @@ func (i *InMemoryStorage[T]) Clear() {
 	i.storage = make(map[string]T)
 }
 
-// Count returns the number of elements in the homestorage.
+// Count returns the number of elements in the storage.
 func (i *InMemoryStorage[T]) Count() uint64 {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
@@ -135,10 +135,10 @@ func (i *InMemoryStorage[T]) Count() uint64 {
 	return uint64(len(i.storage))
 }
 
-// SetLimit sets the maximum number of elements that can be stored.
-func (i *InMemoryStorage[T]) SetLimit(limit uint64) {
+// SetCapacity sets the maximum number of elements that can be stored.
+func (i *InMemoryStorage[T]) SetCapacity(c uint64) {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
-	i.limit = limit
+	i.capacity = c
 }

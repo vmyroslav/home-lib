@@ -16,6 +16,12 @@ func TestMin_Max_Ints(t *testing.T) {
 	}
 	tests := []testCase[int]{
 		{
+			name:    "MinMax of empty slice",
+			args:    []int{},
+			wantMax: 0,
+			wantMin: 0,
+		},
+		{
 			name:    "MinMax of positive ints",
 			args:    []int{1, 2, 3, 4, 5},
 			wantMax: 5,
@@ -61,6 +67,12 @@ func TestMin_Max_Floats(t *testing.T) {
 		wantMin T
 	}
 	tests := []testCase[float64]{
+		{
+			name:    "MinMax of empty slice",
+			args:    []float64{},
+			wantMax: 0,
+			wantMin: 0,
+		},
 		{
 			name:    "MinMax of positive floats",
 			args:    []float64{1.1, 2.2, 3.3, 4.4, 5.5},
@@ -108,6 +120,12 @@ func Test_Min_Max_Strings(t *testing.T) {
 	}
 
 	tests := []testCase[string]{
+		{
+			name:    "MinMax of empty slice",
+			args:    []string{},
+			wantMax: "",
+			wantMin: "",
+		},
 		{
 			name:    "MinMax of chars",
 			args:    []string{"a", "b", "c", "d", "e"},

@@ -14,6 +14,6 @@ func TestWithCapacity(t *testing.T) {
 	for _, limit := range limits {
 		storage := NewInMemoryStorage[string](WithCapacity(limit))
 
-		assert.Equal(t, limit, storage.limit)
+		assert.Equal(t, limit, storage.capacity)
 	}
 }
