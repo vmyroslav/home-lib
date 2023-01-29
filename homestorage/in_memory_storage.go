@@ -35,8 +35,8 @@ func NewInMemoryStorage[T any](opts ...Option) *InMemoryStorage[T] {
 	}
 }
 
-// All returns all elements from the homestorage.
-func (i *InMemoryStorage[T]) All() ([]T, error) {
+// All returns all elements from the storage.
+func (i *InMemoryStorage[T]) All() []T {
 	i.mutex.RLock()
 	defer i.mutex.RUnlock()
 
@@ -45,12 +45,12 @@ func (i *InMemoryStorage[T]) All() ([]T, error) {
 		values = append(values, value)
 	}
 
-	return values, nil
+	return values
 }
 
-// Add adds a new element to the homestorage.
+// Add adds a new element to the storage.
 // If the element with the given key already exists, ErrAlreadyExists is returned.
-// If the homestorage is full, ErrCapacityExceeded is returned.
+// If the storage is full, ErrCapacityExceeded is returned.
 func (i *InMemoryStorage[T]) Add(key string, value T) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -68,7 +68,7 @@ func (i *InMemoryStorage[T]) Add(key string, value T) error {
 	return nil
 }
 
-// Get returns an element from the homestorage by the given key.
+// Get returns an element from the storage by the given key.
 // If the element is not found, ErrNotFound is returned.
 func (i *InMemoryStorage[T]) Get(key string) (T, error) {
 	i.mutex.RLock()
@@ -84,8 +84,8 @@ func (i *InMemoryStorage[T]) Get(key string) (T, error) {
 	return value, nil
 }
 
-// Upsert updates an element in the homestorage by the given key.
-// If the element is not found, it is added to the homestorage.
+// Upsert updates an element in the storage by the given key.
+// If the element is not found, it is added to the storage.
 func (i *InMemoryStorage[T]) Upsert(key string, value T) {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
@@ -133,12 +133,4 @@ func (i *InMemoryStorage[T]) Count() uint64 {
 	defer i.mutex.RUnlock()
 
 	return uint64(len(i.storage))
-}
-
-// SetCapacity sets the maximum number of elements that can be stored.
-func (i *InMemoryStorage[T]) SetCapacity(c uint64) {
-	i.mutex.Lock()
-	defer i.mutex.Unlock()
-
-	i.capacity = c
 }

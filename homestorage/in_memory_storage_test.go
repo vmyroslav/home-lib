@@ -3,7 +3,6 @@ package homestorage
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
-	"math"
 	"sync"
 	"testing"
 
@@ -156,10 +155,7 @@ func TestInMemoryStorage_All(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			got, err := tt.s.All()
-			require.NoError(t, err)
-
-			assert.Equal(t, len(tt.args), len(got))
+			assert.Equal(t, len(tt.args), len(tt.s.All()))
 		})
 	}
 }
@@ -167,7 +163,7 @@ func TestInMemoryStorage_All(t *testing.T) {
 func TestInMemoryStorage_ConcurrentAdd(t *testing.T) {
 	t.Parallel()
 
-	s := NewInMemoryStorage[int64](WithCapacity(100))
+	s := NewInMemoryStorage[int](WithCapacity(100))
 
 	var wg sync.WaitGroup
 
@@ -176,7 +172,7 @@ func TestInMemoryStorage_ConcurrentAdd(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 
-			err := s.Add(fmt.Sprintf("key%d", i), int64(i))
+			err := s.Add(fmt.Sprintf("key%d", i), i)
 			require.NoError(t, err)
 		}(i)
 	}
@@ -203,6 +199,84 @@ func TestInMemoryStorage_Upsert(t *testing.T) {
 	got, err = s.Get("key2")
 	require.NoError(t, err)
 	assert.Equal(t, 3, got)
+}
+
+func TestInMemoryStorage_Replace(t *testing.T) {
+	t.Parallel()
+
+	type args[T any] struct {
+		key   string
+		value T
+	}
+
+	type testCase[T any] struct {
+		name    string
+		s       *InMemoryStorage[T]
+		args    []args[T]
+		wantErr error
+	}
+
+	s := NewInMemoryStorage[string](WithCapacity(100))
+	_ = s.Add("key", "value")
+	_ = s.Add("key-2", "value-2")
+	_ = s.Add("key-3", "value-3")
+
+	tests := []testCase[string]{
+		{
+			name: "Replace non-existing element",
+			s:    NewInMemoryStorage[string](),
+			args: []args[string]{
+				{
+					key:   "key",
+					value: "value",
+				},
+			},
+			wantErr: ErrNotFound,
+		},
+		{
+			name: "Replace existing element",
+			s:    s,
+			args: []args[string]{
+				{
+					key:   "key",
+					value: "new-value",
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Replace existing element for multiple times",
+			s:    s,
+			args: []args[string]{
+				{
+					key:   "key-3",
+					value: "new-value-1",
+				},
+				{
+					key:   "key-3",
+					value: "new-value-2",
+				},
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			for _, arg := range tt.args {
+				err := tt.s.Replace(arg.key, arg.value)
+				assert.ErrorIs(t, err, tt.wantErr)
+
+				if tt.wantErr == nil {
+					got, err := tt.s.Get(arg.key)
+					require.NoError(t, err)
+					assert.Equal(t, arg.value, got)
+				}
+			}
+		})
+	}
 }
 
 func TestInMemoryStorage_Clear(t *testing.T) {
@@ -261,45 +335,6 @@ func TestInMemoryStorage_Count(t *testing.T) {
 			}
 
 			assert.Equalf(t, tt.want, tt.i.Count(), "Count()")
-		})
-	}
-}
-
-func TestInMemoryStorage_SetLimit(t *testing.T) {
-	t.Parallel()
-
-	type testCase[T any] struct {
-		name  string
-		i     *InMemoryStorage[T]
-		limit uint64
-		want  uint64
-	}
-
-	tests := []testCase[string]{
-		{
-			name:  "Set capacity to 10",
-			i:     NewInMemoryStorage[string](),
-			limit: 10,
-			want:  10,
-		},
-		{
-			name:  "Set capacity to MAX",
-			i:     NewInMemoryStorage[string](),
-			limit: math.MaxUint64,
-			want:  math.MaxUint64,
-		},
-		{
-			name:  "Set capacity to ZERO",
-			i:     NewInMemoryStorage[string](),
-			limit: 0,
-			want:  0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.i.SetCapacity(tt.limit)
-			assert.Equal(t, tt.want, tt.i.capacity)
 		})
 	}
 }
