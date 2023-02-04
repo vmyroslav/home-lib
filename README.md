@@ -10,7 +10,7 @@
 - [Prerequisites](#Prerequisites)
 - [Installation](#Installation)
 - [Description](#Description)
-    - [Logging](#HTTP)
+    - [HTTP](#HTTP)
     - [Math](#Math)
     - [Storage](#Storage)
     - [Logging](#Logging)
@@ -31,6 +31,13 @@ I do not guarantee that they will be supported and updated, so I do not recommen
 TODO: Pls fill me
 
 ### HTTP
+Package http provides a simple way to create an HTTP client.
+
+Usage:
+```go
+
+```
+
 ### Math
 ### Storage
 ### Logging
