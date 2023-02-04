@@ -279,6 +279,65 @@ func TestInMemoryStorage_Replace(t *testing.T) {
 	}
 }
 
+func TestInMemoryStorage_Delete(t *testing.T) {
+	t.Parallel()
+
+	s := NewInMemoryStorage[int64](WithCapacity(100))
+
+	_ = s.Add("key", 1)
+	_ = s.Add("key2", 2)
+	_ = s.Add("key3", 3)
+
+	type testCase[T any] struct {
+		name    string
+		s       *InMemoryStorage[T]
+		key     string
+		wantErr error
+	}
+
+	tests := []testCase[int64]{
+		{
+			name:    "Delete non-existing element",
+			s:       NewInMemoryStorage[int64](),
+			key:     "key",
+			wantErr: ErrNotFound,
+		},
+		{
+			name:    "Delete existing element",
+			s:       s,
+			key:     "key",
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.s.Delete(tt.key)
+			assert.ErrorIs(t, err, tt.wantErr)
+
+			if tt.wantErr == nil {
+				_, err := tt.s.Get(tt.key)
+				assert.ErrorIs(t, err, ErrNotFound)
+			}
+		})
+	}
+}
+
+func TestInMemoryStorage_MustDelete(t *testing.T) {
+	t.Parallel()
+
+	s := NewInMemoryStorage[int64](WithCapacity(100))
+
+	_ = s.Add("key", 1)
+	_ = s.Add("key2", 2)
+
+	s.MustDelete("key")
+	s.MustDelete("key3")
+
+	_, err := s.Get("key")
+	assert.ErrorIs(t, err, ErrNotFound)
+}
+
 func TestInMemoryStorage_Clear(t *testing.T) {
 	t.Parallel()
 

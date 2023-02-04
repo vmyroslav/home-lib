@@ -106,7 +106,9 @@ func (i *InMemoryStorage[T]) Replace(key string, value T) error {
 	return nil
 }
 
-func (i *InMemoryStorage[T]) Remove(key string) error {
+// Delete deletes an element from the storage by the given key.
+// If the element is not found, ErrNotFound is returned.
+func (i *InMemoryStorage[T]) Delete(key string) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
@@ -117,6 +119,14 @@ func (i *InMemoryStorage[T]) Remove(key string) error {
 	delete(i.storage, key)
 
 	return nil
+}
+
+// MustDelete deletes an element from the storage by the given key even if it is not found.
+func (i *InMemoryStorage[T]) MustDelete(key string) {
+	i.mutex.Lock()
+	defer i.mutex.Unlock()
+
+	delete(i.storage, key)
 }
 
 // Clear removes all elements from the storage.
