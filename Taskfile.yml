@@ -13,3 +13,6 @@ tasks:
   imports:
     cmds:
       - goimports -w .
+  fumpt:
+    cmds:
+      - find . -name '*.go' -type f -exec gofumpt -w {} +

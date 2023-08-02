@@ -1,8 +1,9 @@
 package homemath
 
 import (
-	"golang.org/x/exp/constraints"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 func TestMin_Max_Ints(t *testing.T) {

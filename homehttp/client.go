@@ -88,6 +88,7 @@ func (r *ErrorResponse) Error() string {
 		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode,
 	)
 }
+
 func checkResponse(resp *http.Response) error {
 	if http.StatusOK <= resp.StatusCode && resp.StatusCode < http.StatusMultipleChoices {
 		return nil
