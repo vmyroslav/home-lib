@@ -16,3 +16,7 @@ tasks:
   fumpt:
     cmds:
       - find . -name '*.go' -type f -exec gofumpt -w {} +
+  update-deps:
+    desc: Update dependencies
+    cmds:
+      - go get -u -d ./...
