@@ -30,3 +30,9 @@ func NewDefault(appName string) *zerolog.Logger {
 
 	return New(options...)
 }
+
+func NewNoOp() *zerolog.Logger {
+	logger := zerolog.New(nil)
+
+	return &logger
+}
