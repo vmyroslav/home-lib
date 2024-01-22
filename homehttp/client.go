@@ -12,9 +12,12 @@ import (
 
 const defaultClientName = "homehttp.Client"
 
+var ErrorTimeout = errors.New("request timeout")
+
 // Client is a wrapper for default http.Client.
 type Client struct {
 	*http.Client
+	logger *zerolog.Logger
 }
 
 // NewClient returns a new Client.
@@ -51,6 +54,7 @@ func buildClient(cfg *clientConfig) *Client {
 			Timeout:   cfg.Timeout,
 			Transport: chainRoundTrippers(http.DefaultTransport, cfg.TransportMiddlewares...),
 		},
+		logger: cfg.Logger,
 	}
 }
 
