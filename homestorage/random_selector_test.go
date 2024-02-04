@@ -1,6 +1,8 @@
 package homestorage
 
 import (
+	"math"
+	"reflect"
 	"testing"
 )
 
@@ -66,5 +68,53 @@ func TestWeightedRandomSelector(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestAddTopPrioElement(t *testing.T) {
+	t.Parallel()
+
+	selector := NewWeightedRandomSelector[string]()
+	selector.AddTopPrioElement("Apple")
+	want := []Item[string]{{"Apple", math.MaxUint16}}
+
+	if !reflect.DeepEqual(selector.items, want) {
+		t.Errorf("Test AddTopPrioElement failed: expected %v, got %v", want, selector.items)
+	}
+}
+
+func TestAddOrdered(t *testing.T) {
+	t.Parallel()
+
+	selector := NewWeightedRandomSelector[string]()
+	selector.AddOrdered([]string{"Apple", "Banana"})
+	want := []Item[string]{{"Apple", 0}, {"Banana", 1}}
+
+	if !reflect.DeepEqual(selector.items, want) {
+		t.Errorf("Test AddOrdered failed: expected %v, got %v", want, selector.items)
+	}
+}
+
+func TestAddMany(t *testing.T) {
+	t.Parallel()
+
+	selector := NewWeightedRandomSelector[string]()
+	selector.AddMany([]Item[string]{{"Apple", 1}, {"Banana", 2}})
+	want := []Item[string]{{"Apple", 1}, {"Banana", 2}}
+
+	if !reflect.DeepEqual(selector.items, want) {
+		t.Errorf("Test AddMany failed: expected %v, got %v", want, selector.items)
+	}
+}
+
+func TestAddItem(t *testing.T) {
+	t.Parallel()
+
+	selector := NewWeightedRandomSelector[string]()
+	selector.AddItem(Item[string]{"Apple", 1})
+	want := []Item[string]{{"Apple", 1}}
+
+	if !reflect.DeepEqual(selector.items, want) {
+		t.Errorf("Test AddItem failed: expected %v, got %v", want, selector.items)
 	}
 }
