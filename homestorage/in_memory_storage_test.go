@@ -386,6 +386,8 @@ func TestInMemoryStorage_Count(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
 			for _, element := range tt.elements {
 				err := tt.i.Add(element, element)
