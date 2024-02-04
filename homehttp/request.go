@@ -12,8 +12,8 @@ import (
 
 const defaultContentType = "application/json"
 
-// NewRequest creates a new http request.
-func NewRequest(ctx context.Context, method, urlStr string, body any) (*http.Request, error) {
+// NewRequestJSON creates a new http request.
+func NewRequestJSON(ctx context.Context, method, urlStr string, body any) (*http.Request, error) {
 	var (
 		buf     io.ReadWriter
 		headers = map[string]string{}

@@ -72,3 +72,26 @@ func WithHeader(key, value string) ClientOption {
 		c.TransportMiddlewares = append(c.TransportMiddlewares, clientHeader(key, value))
 	})
 }
+
+// WithRetryStrategy returns a ClientOption that adds a RetryMiddleware to the client's transport middlewares.
+func WithRetryStrategy(strategy RetryStrategy) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.Retryer = strategy
+	})
+}
+
+func WithMaxRetries(maxRetries int) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.MaxRetries = maxRetries
+	})
+}
+
+func WithBackoffStrategy(strategy BackoffStrategy) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.Backoff = strategy
+	})
+}
+
+func WithConstantBackoff(t time.Duration) ClientOption {
+	return WithBackoffStrategy(ConstantBackoff(t))
+}

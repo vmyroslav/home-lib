@@ -14,7 +14,7 @@ func TestNewRequest_WithBody(t *testing.T) {
 	ctx := context.Background()
 	body := map[string]string{"key": "value"}
 
-	req, err := NewRequest(ctx, http.MethodPost, "http://localhost", body)
+	req, err := NewRequestJSON(ctx, http.MethodPost, "http://localhost", body)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, req)
@@ -32,7 +32,7 @@ func TestNewRequest_WithBody(t *testing.T) {
 func TestNewRequest_WithoutBody(t *testing.T) {
 	ctx := context.Background()
 
-	req, err := NewRequest(ctx, http.MethodGet, "http://localhost", nil)
+	req, err := NewRequestJSON(ctx, http.MethodGet, "http://localhost", nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, req)
@@ -45,7 +45,7 @@ func TestNewRequest_InvalidURL(t *testing.T) {
 	ctx := context.Background()
 	body := map[string]string{"key": "value"}
 
-	req, err := NewRequest(ctx, http.MethodPost, ":", body)
+	req, err := NewRequestJSON(ctx, http.MethodPost, ":", body)
 
 	assert.Error(t, err)
 	assert.Nil(t, req)
@@ -55,7 +55,7 @@ func TestNewRequest_InvalidBody(t *testing.T) {
 	ctx := context.Background()
 	body := make(chan int)
 
-	req, err := NewRequest(ctx, http.MethodPost, "http://localhost", body)
+	req, err := NewRequestJSON(ctx, http.MethodPost, "http://localhost", body)
 
 	assert.Error(t, err)
 	assert.Nil(t, req)

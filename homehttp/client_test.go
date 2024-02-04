@@ -96,7 +96,7 @@ func TestClientDo(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := client.Do(context.Background(), tt.method, tt.url, nil)
+			resp, err := client.DoJSON(context.Background(), tt.method, tt.url, nil)
 			if err != nil {
 				var errResp *ErrorResponse
 				if !errors.As(err, &errResp) {
@@ -169,7 +169,7 @@ func TestClientDoWithTimeoutClientOption(t *testing.T) {
 		tt := tt
 
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := client.Do(context.Background(), tt.method, tt.url, nil)
+			resp, err := client.DoJSON(context.Background(), tt.method, tt.url, nil)
 			if err != nil {
 				if !tt.expectTimeout {
 					t.Fatal(err, "unexpected error type received")
@@ -247,13 +247,19 @@ func TestClientDoWithContextTimeout(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
 
-			resp, err := client.Do(ctx, tt.method, tt.url, nil)
+			resp, err := client.DoJSON(ctx, tt.method, tt.url, nil)
 			if err != nil {
 				if !tt.expectTimeout {
 					t.Fatal(err, "unexpected error type received")
 				}
 
-				assert.ErrorIs(t, err, context.DeadlineExceeded, "context deadline exceeded error should be returned")
+				var expErr ErrorResponse
+
+				assert.ErrorAs(t, err, &expErr, "expected ResponseError")
+
+				if respErr, ok := err.(ErrorResponse); ok && respErr.Response != nil {
+					assert.ErrorIs(t, respErr.Original, context.DeadlineExceeded, "context deadline exceeded error should be returned")
+				}
 
 				return
 			}
@@ -278,7 +284,7 @@ func TestClientDoWithAppNameOption(t *testing.T) {
 	client := NewClient(WithAppName("test"))
 
 	// Run the tests
-	resp, err := client.Do(context.Background(), "GET", testServer.URL, nil)
+	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
@@ -298,7 +304,7 @@ func TestClientDoWithBasicAuthOption(t *testing.T) {
 	client := NewClient(WithBasicAuth("username", "password"))
 
 	// Run the test
-	resp, err := client.Do(context.Background(), "GET", testServer.URL, nil)
+	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
@@ -316,7 +322,7 @@ func TestClientDoWithHeaderOption(t *testing.T) {
 	client := NewClient(WithHeader("key", "test"))
 
 	// Run the tests
-	resp, err := client.Do(context.Background(), "GET", testServer.URL, nil)
+	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
@@ -341,7 +347,7 @@ func TestClientDoWithAuthorizationTokenOption(t *testing.T) {
 	}))
 
 	// Run the test
-	resp, err := client.Do(context.Background(), "GET", testServer.URL, nil)
+	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, resp)
 }
