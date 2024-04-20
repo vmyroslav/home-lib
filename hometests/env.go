@@ -17,9 +17,7 @@ func EnvOverride(t *testing.T, key, value string) func() {
 
 	originalValue := os.Getenv(key)
 
-	if err := os.Setenv(key, value); err != nil {
-		t.Fatal(err)
-	}
+	t.Setenv(key, value)
 
 	return func() {
 		if err := os.Setenv(key, originalValue); err != nil {

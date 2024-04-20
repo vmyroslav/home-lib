@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -35,6 +36,7 @@ func TestClientDo(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
+
 	defer testServer.Close()
 
 	// Define the test cases
@@ -91,14 +93,11 @@ func TestClientDo(t *testing.T) {
 	// Create a new client
 	client := NewClient()
 
-	// Run the tests
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := client.DoJSON(context.Background(), tt.method, tt.url, nil)
 			if err != nil {
-				var errResp *ErrorResponse
+				var errResp *ResponseError
 				if !errors.As(err, &errResp) {
 					t.Fatal(err, "unexpected error type received")
 				}
@@ -106,7 +105,7 @@ func TestClientDo(t *testing.T) {
 				assert.Equal(
 					t,
 					tt.expectedStatus,
-					err.(*ErrorResponse).Response.StatusCode,
+					err.(*ResponseError).Response.StatusCode,
 					"status code should match",
 				)
 			}
@@ -135,7 +134,8 @@ func TestClientDoWithTimeoutClientOption(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-	defer testServer.Close()
+
+	t.Cleanup(testServer.Close)
 
 	// Define the test cases
 	tests := []struct {
@@ -166,9 +166,9 @@ func TestClientDoWithTimeoutClientOption(t *testing.T) {
 
 	// Run the tests
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			resp, err := client.DoJSON(context.Background(), tt.method, tt.url, nil)
 			if err != nil {
 				if !tt.expectTimeout {
@@ -210,7 +210,8 @@ func TestClientDoWithContextTimeout(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-	defer testServer.Close()
+
+	t.Cleanup(testServer.Close)
 
 	// Define the test cases
 	tests := []struct {
@@ -241,9 +242,9 @@ func TestClientDoWithContextTimeout(t *testing.T) {
 
 	// Run the tests
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			defer cancel()
 
@@ -253,12 +254,12 @@ func TestClientDoWithContextTimeout(t *testing.T) {
 					t.Fatal(err, "unexpected error type received")
 				}
 
-				var expErr ErrorResponse
+				var expErr ResponseError
 
 				assert.ErrorAs(t, err, &expErr, "expected ResponseError")
 
-				if respErr, ok := err.(ErrorResponse); ok && respErr.Response != nil {
-					assert.ErrorIs(t, respErr.Original, context.DeadlineExceeded, "context deadline exceeded error should be returned")
+				if respErr, ok := err.(ResponseError); ok && respErr.Response != nil {
+					require.ErrorIs(t, respErr.Original, context.DeadlineExceeded, "context deadline exceeded error should be returned")
 				}
 
 				return
@@ -275,7 +276,7 @@ func TestClientDoWithAppNameOption(t *testing.T) {
 	t.Parallel()
 
 	// Create a test server
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "test", r.Header.Get("User-Agent"))
 	}))
 	defer testServer.Close()
@@ -285,7 +286,7 @@ func TestClientDoWithAppNameOption(t *testing.T) {
 
 	// Run the tests
 	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }
 
@@ -293,7 +294,7 @@ func TestClientDoWithBasicAuthOption(t *testing.T) {
 	t.Parallel()
 
 	// Create a test server
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		expectedAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte("username:password"))
 		assert.Equal(t, expectedAuth, auth)
@@ -305,7 +306,7 @@ func TestClientDoWithBasicAuthOption(t *testing.T) {
 
 	// Run the test
 	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }
 
@@ -313,7 +314,7 @@ func TestClientDoWithHeaderOption(t *testing.T) {
 	t.Parallel()
 
 	// Create a test server
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "test", r.Header.Get("key"))
 	}))
 	defer testServer.Close()
@@ -323,7 +324,7 @@ func TestClientDoWithHeaderOption(t *testing.T) {
 
 	// Run the tests
 	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }
 
@@ -332,7 +333,7 @@ func TestClientDoWithAuthorizationTokenOption(t *testing.T) {
 	t.Parallel()
 
 	// Create a test server
-	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		expectedAuth := "Bearer " + "token"
 		assert.Equal(t, expectedAuth, auth)
@@ -348,6 +349,6 @@ func TestClientDoWithAuthorizationTokenOption(t *testing.T) {
 
 	// Run the test
 	resp, err := client.DoJSON(context.Background(), "GET", testServer.URL, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }

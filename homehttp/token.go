@@ -16,7 +16,7 @@ type Token struct {
 
 // IsValid checks if the token is valid.
 func (t Token) IsValid() bool {
-	return len(t.AccessToken) > 0 && time.Now().Before(t.ExpiresAt)
+	return t.AccessToken != "" && time.Now().Before(t.ExpiresAt)
 }
 
 // TokenProvider is a token provider.

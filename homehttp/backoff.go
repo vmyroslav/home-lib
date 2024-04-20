@@ -22,7 +22,7 @@ func ConstantBackoff(t time.Duration) BackoffStrategyFunc {
 }
 
 func LinearBackoff(t time.Duration) BackoffStrategyFunc {
-	return func(min, max time.Duration, attemptNum int, _ *http.Response) time.Duration {
+	return func(min, _ time.Duration, attemptNum int, _ *http.Response) time.Duration {
 		return min + time.Duration(attemptNum)*t
 	}
 }

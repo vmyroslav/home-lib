@@ -15,7 +15,7 @@ func TestMin_Max_Ints(t *testing.T) {
 		wantMax T
 		wantMin T
 	}
-	tests := []testCase[int]{
+	tests := []testCase[int]{ //nolint:wsl
 		{
 			name:    "MinMax of empty slice",
 			args:    []int{},
@@ -43,7 +43,6 @@ func TestMin_Max_Ints(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -67,6 +66,7 @@ func TestMin_Max_Floats(t *testing.T) {
 		wantMax T
 		wantMin T
 	}
+
 	tests := []testCase[float64]{
 		{
 			name:    "MinMax of empty slice",
@@ -95,7 +95,6 @@ func TestMin_Max_Floats(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -148,7 +147,6 @@ func Test_Min_Max_Strings(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

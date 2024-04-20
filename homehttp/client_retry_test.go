@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,8 +13,6 @@ import (
 )
 
 func TestClientDoWithRetry(t *testing.T) {
-	t.Parallel()
-
 	// Define the test cases
 	tests := []struct {
 		name                 string
@@ -161,8 +160,6 @@ func TestClientDoWithRetry(t *testing.T) {
 
 	// Run the tests
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			// Create a new client with a retry strategy
 			client := NewClient(
@@ -179,11 +176,11 @@ func TestClientDoWithRetry(t *testing.T) {
 
 				// check if the request body is not corrupted
 				actualPayload, err := io.ReadAll(r.Body)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				var actualRequest string
 				err = json.Unmarshal(actualPayload, &actualRequest)
-				assert.NoError(t, err)
+				require.NoError(t, err)
 
 				assert.Equal(t, tt.expectedRequestBody, actualRequest, "request body should match")
 
@@ -205,23 +202,27 @@ func TestClientDoWithRetry(t *testing.T) {
 			defer testServer.Close()
 
 			resp, err := client.DoJSON(context.Background(), tt.method, testServer.URL+tt.path, tt.expectedRequestBody)
-			if tt.expectFailure {
-				var expErr ErrorResponse
+			if err != nil && resp != nil {
+				defer resp.Body.Close()
+			}
 
-				assert.Error(t, err, "expected error, but got nil")
-				assert.ErrorAs(t, err, &expErr, "expected ResponseError")
+			if tt.expectFailure { //nolint:wsl
+				var expErr ResponseError
+
+				require.Error(t, err, "expected error, but got nil")
+				require.ErrorAs(t, err, &expErr, "expected ResponseError")
 				assert.Nil(t, resp, "response should be nil")
 				assert.Equal(t, tt.expectedCalls, callCount, "number of calls should match")
 
-				if respErr, ok := err.(ErrorResponse); ok && respErr.Response != nil {
-					bodyBytes, _ := io.ReadAll(err.(ErrorResponse).Response.Body)
+				if respErr, ok := err.(ResponseError); ok && respErr.Response != nil {
+					bodyBytes, _ := io.ReadAll(err.(ResponseError).Response.Body)
 					assert.Equal(t, tt.expectedResponseBody, string(bodyBytes), "response body should match")
 				}
 
 				return
 			}
 
-			assert.NoError(t, err, "expected no error, but got %v", err)
+			require.NoError(t, err, "expected no error, but got %v", err)
 			assert.NotNil(t, resp, "response should not be nil")
 			assert.Equal(t, tt.expectedStatusCode, resp.StatusCode, "status code should match")
 			assert.Equal(t, tt.expectedCalls, callCount, "number of calls should match")

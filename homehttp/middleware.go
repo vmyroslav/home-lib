@@ -2,6 +2,7 @@ package homehttp
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
@@ -57,7 +58,7 @@ func clientAuthorizationToken(tp TokenProvider) roundTripperMiddleware {
 		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
 			token, err := tp.GetToken(req.Context())
 			if err != nil {
-				return nil, err
+				return nil, errors.WithStack(err)
 			}
 
 			req.Header.Set("Authorization", fmt.Sprintf("%s %s", token.Type, token.AccessToken))

@@ -21,7 +21,7 @@ const (
 	respSizeLimit = int64(10 * 1024 * 1024) // 10MB
 )
 
-var ErrorTimeout = errors.New("request timeout")
+var ErrTimeout = errors.New("request timeout")
 
 // Client is a wrapper for default http.Client.
 type Client struct {
@@ -58,7 +58,7 @@ func NewClient(opts ...ClientOption) *Client {
 	return buildClient(cfg)
 }
 
-type clientConfig struct {
+type clientConfig struct { //nolint:govet
 	AppName              string
 	Timeout              time.Duration
 	TransportMiddlewares []roundTripperMiddleware
@@ -90,7 +90,7 @@ func buildClient(cfg *clientConfig) *Client {
 }
 
 // DoJSON executes a request.
-func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*http.Response, error) {
+func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*http.Response, error) { //nolint:cyclop
 	req, err := NewRequestJSON(ctx, method, url, payload)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
@@ -150,7 +150,6 @@ func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*
 			return nil, req.Context().Err()
 		case <-timer.C:
 		}
-
 	}
 
 	if doErr == nil && !shouldRetry {
@@ -158,7 +157,7 @@ func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*
 	}
 
 	// retry was not successful
-	return nil, ErrorResponse{Response: resp, Original: doErr}
+	return nil, ResponseError{Response: resp, Original: doErr}
 }
 
 func (c *Client) drainBody(body io.ReadCloser) {
@@ -168,12 +167,12 @@ func (c *Client) drainBody(body io.ReadCloser) {
 	}
 }
 
-type ErrorResponse struct {
+type ResponseError struct {
 	Response *http.Response
 	Original error
 }
 
-func (r ErrorResponse) Error() string {
+func (r ResponseError) Error() string {
 	if r.Response == nil {
 		return r.Original.Error()
 	}

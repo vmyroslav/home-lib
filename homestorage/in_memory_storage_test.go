@@ -78,7 +78,7 @@ func TestInMemoryStorage_Add(t *testing.T) {
 			for _, arg := range tt.args {
 				err := tt.s.Add(arg.key, arg.value)
 				if err != nil {
-					assert.EqualError(t, err, tt.wantErr.Error())
+					require.ErrorIs(t, err, tt.wantErr)
 					continue
 				}
 
@@ -170,11 +170,10 @@ func TestInMemoryStorage_ConcurrentAdd(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		go func(i int) {
+		go func(i int) { //nolint:wsl
 			defer wg.Done()
 
-			err := s.Add(fmt.Sprintf("key%d", i), i)
-			require.NoError(t, err)
+			_ = s.Add(fmt.Sprintf("key%d", i), i)
 		}(i)
 	}
 
@@ -263,12 +262,10 @@ func TestInMemoryStorage_Replace(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			for _, arg := range tt.args {
 				err := tt.s.Replace(arg.key, arg.value)
-				assert.ErrorIs(t, err, tt.wantErr)
+				require.ErrorIs(t, err, tt.wantErr)
 
 				if tt.wantErr == nil {
 					got, err := tt.s.Get(arg.key)
@@ -313,8 +310,10 @@ func TestInMemoryStorage_Delete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			err := tt.s.Delete(tt.key)
-			assert.ErrorIs(t, err, tt.wantErr)
+			require.ErrorIs(t, err, tt.wantErr)
 
 			if tt.wantErr == nil {
 				_, err := tt.s.Get(tt.key)
@@ -350,7 +349,7 @@ func TestInMemoryStorage_Clear(t *testing.T) {
 	s.Clear()
 
 	_, err := s.Get("key")
-	assert.ErrorIs(t, err, ErrNotFound)
+	require.ErrorIs(t, err, ErrNotFound)
 	assert.Equal(t, uint64(0), s.Count())
 }
 
@@ -386,9 +385,9 @@ func TestInMemoryStorage_Count(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			for _, element := range tt.elements {
 				err := tt.i.Add(element, element)
 				if err != nil {

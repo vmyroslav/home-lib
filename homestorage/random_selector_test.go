@@ -51,8 +51,6 @@ func TestWeightedRandomSelector(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -76,6 +74,7 @@ func TestAddTopPrioElement(t *testing.T) {
 
 	selector := NewWeightedRandomSelector[string]()
 	selector.AddTopPrioElement("Apple")
+
 	want := []Item[string]{{"Apple", math.MaxUint16}}
 
 	if !reflect.DeepEqual(selector.items, want) {
@@ -88,6 +87,7 @@ func TestAddOrdered(t *testing.T) {
 
 	selector := NewWeightedRandomSelector[string]()
 	selector.AddOrdered([]string{"Apple", "Banana"})
+
 	want := []Item[string]{{"Apple", 0}, {"Banana", 1}}
 
 	if !reflect.DeepEqual(selector.items, want) {
@@ -100,6 +100,7 @@ func TestAddMany(t *testing.T) {
 
 	selector := NewWeightedRandomSelector[string]()
 	selector.AddMany([]Item[string]{{"Apple", 1}, {"Banana", 2}})
+
 	want := []Item[string]{{"Apple", 1}, {"Banana", 2}}
 
 	if !reflect.DeepEqual(selector.items, want) {
@@ -112,6 +113,7 @@ func TestAddItem(t *testing.T) {
 
 	selector := NewWeightedRandomSelector[string]()
 	selector.AddItem(Item[string]{"Apple", 1})
+
 	want := []Item[string]{{"Apple", 1}}
 
 	if !reflect.DeepEqual(selector.items, want) {

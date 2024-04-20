@@ -38,7 +38,7 @@ var (
 	})
 
 	// RetryOn500x returns a classifier that retries on HTTP errors (5xx).
-	RetryOn500x = RetryStrategyFunc(func(ctx context.Context, resp *http.Response, err error) bool {
+	RetryOn500x = RetryStrategyFunc(func(_ context.Context, resp *http.Response, _ error) bool {
 		return resp != nil && resp.StatusCode >= http.StatusInternalServerError
 	})
 )

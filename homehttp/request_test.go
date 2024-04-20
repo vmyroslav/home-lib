@@ -3,6 +3,7 @@ package homehttp
 import (
 	"bytes"
 	"context"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"strings"
 	"testing"
@@ -16,7 +17,7 @@ func TestNewRequest_WithBody(t *testing.T) {
 
 	req, err := NewRequestJSON(ctx, http.MethodPost, "http://localhost", body)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, req)
 	assert.Equal(t, http.MethodPost, req.Method)
 	assert.Equal(t, "http://localhost", req.URL.String())
@@ -34,7 +35,7 @@ func TestNewRequest_WithoutBody(t *testing.T) {
 
 	req, err := NewRequestJSON(ctx, http.MethodGet, "http://localhost", nil)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, req)
 	assert.Equal(t, http.MethodGet, req.Method)
 	assert.Equal(t, "http://localhost", req.URL.String())
@@ -47,7 +48,7 @@ func TestNewRequest_InvalidURL(t *testing.T) {
 
 	req, err := NewRequestJSON(ctx, http.MethodPost, ":", body)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, req)
 }
 
@@ -57,6 +58,6 @@ func TestNewRequest_InvalidBody(t *testing.T) {
 
 	req, err := NewRequestJSON(ctx, http.MethodPost, "http://localhost", body)
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Nil(t, req)
 }

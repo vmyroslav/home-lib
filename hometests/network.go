@@ -11,6 +11,7 @@ import (
 // RandomPort generates a random port, trying up to maxRetries times.
 func RandomPort(t *testing.T) int {
 	t.Helper()
+
 	maxRetries := 5
 
 	port, err := randomPort(rand.New(rand.NewSource(time.Now().UnixNano())), defaultListener{}, maxRetries) //nolint:gosec
