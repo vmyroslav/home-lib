@@ -36,7 +36,6 @@ linters:
     - errname
     - exhaustive
     - exportloopref
-    - gas
     - gochecknoinits
     - goconst
     - gocritic
@@ -49,7 +48,6 @@ linters:
     - ineffassign
     - interfacebloat
     - loggercheck
-    - megacheck
     - mirror
     - misspell
     - nakedret
