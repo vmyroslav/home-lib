@@ -11,7 +11,7 @@ type BackoffStrategy interface {
 
 type BackoffStrategyFunc func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration
 
-func (f BackoffStrategyFunc) Backoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+func (f BackoffStrategyFunc) Backoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration { //nolint:gocritic
 	return f(min, max, attemptNum, resp)
 }
 
