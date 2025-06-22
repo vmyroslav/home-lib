@@ -353,3 +353,62 @@ func TestClientDoWithAuthorizationTokenOption(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, resp)
 }
+
+// TestBasicAuthTokenValidation verifies that basic auth tokens don't expire
+func TestBasicAuthTokenValidation(t *testing.T) {
+	t.Parallel()
+
+	// Create basic auth token provider
+	tokenProvider := basicAuthorization("user", "pass")
+
+	// Get token
+	token, err := tokenProvider.GetToken(context.Background())
+	require.NoError(t, err)
+
+	// Verify token properties
+	assert.Equal(t, "Basic", token.Type)
+	assert.NotEmpty(t, token.AccessToken)
+	assert.True(t, token.ExpiresAt.IsZero(), "Basic auth token should not have expiration")
+	assert.True(t, token.IsValid(), "Basic auth token should be valid")
+
+	// Token should still be valid after some time
+	time.Sleep(10 * time.Millisecond)
+	assert.True(t, token.IsValid(), "Basic auth token should remain valid")
+}
+
+// TestTokenIsValidWithExpiration verifies IsValid works correctly with expiring tokens
+func TestTokenIsValidWithExpiration(t *testing.T) {
+	t.Parallel()
+
+	// Test valid token with future expiration
+	validToken := Token{
+		AccessToken: "valid-token",
+		ExpiresAt:   time.Now().Add(time.Hour),
+		Type:        "Bearer",
+	}
+	assert.True(t, validToken.IsValid())
+
+	// Test expired token
+	expiredToken := Token{
+		AccessToken: "expired-token",
+		ExpiresAt:   time.Now().Add(-time.Hour),
+		Type:        "Bearer",
+	}
+	assert.False(t, expiredToken.IsValid())
+
+	// Test token with no access token
+	emptyToken := Token{
+		AccessToken: "",
+		ExpiresAt:   time.Now().Add(time.Hour),
+		Type:        "Bearer",
+	}
+	assert.False(t, emptyToken.IsValid())
+
+	// Test token with zero expiration (like basic auth)
+	noExpirationToken := Token{
+		AccessToken: "no-expiry-token",
+		ExpiresAt:   time.Time{}, // Zero time
+		Type:        "Basic",
+	}
+	assert.True(t, noExpirationToken.IsValid())
+}

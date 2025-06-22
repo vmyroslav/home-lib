@@ -22,6 +22,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Backoff strategies now receive correct min/max wait times instead of zero values
   - Added default retry wait times: 100ms minimum, 3s maximum
   - Fixed retry mechanism that was previously not applying proper delays between attempts
+- **homehttp**: Fixed error logging bug in retry logic
+  - Error logging now correctly logs the actual request error (`doErr`) instead of stale error
+  - Improves debugging by showing the real cause of request failures during retries
+- **homehttp**: Fixed basic auth token expiration behavior
+  - Basic auth tokens no longer have arbitrary 1-hour expiration
+  - `Token.IsValid()` method now properly handles tokens without expiration (zero time)
+  - Basic auth credentials remain valid until explicitly invalidated, matching HTTP spec
+- **homehttp**: Removed redundant `NoRetryStrategy` struct
+  - Eliminated duplicate functionality already provided by `NoRetry` variable
+  - Simplified codebase by using consistent functional approach for retry strategies
 
 ### Added
 - **homestorage**: Test suites for concurrency and capacity violations
@@ -29,7 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `WithRetryWaitTimes(min, max)` to set both minimum and maximum retry wait times
   - `WithMinRetryWait(duration)` to set minimum wait time between retries
   - `WithMaxRetryWait(duration)` to set maximum wait time between retries
-  - Comprehensive test suite for retry backoff timing validation
+  - Test suite for retry backoff timing validation
+- **homehttp**: Enhanced test coverage for token validation
+  - Added tests for basic auth token expiration behavior
+  - Added tests for `Token.IsValid()` method with various scenarios
+  - Improved test coverage for authentication mechanisms
 
 ## [v0.1.0] - 2024-02-04
 

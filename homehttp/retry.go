@@ -42,9 +42,3 @@ var (
 		return resp != nil && resp.StatusCode >= http.StatusInternalServerError
 	})
 )
-
-type NoRetryStrategy struct{}
-
-func (s *NoRetryStrategy) Classify(_ context.Context, _ *http.Response, _ error) bool {
-	return false
-}

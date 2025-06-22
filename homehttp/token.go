@@ -16,7 +16,13 @@ type Token struct {
 
 // IsValid checks if the token is valid.
 func (t Token) IsValid() bool {
-	return t.AccessToken != "" && time.Now().Before(t.ExpiresAt)
+	if t.AccessToken == "" {
+		return false
+	}
+	if t.ExpiresAt.IsZero() {
+		return true
+	} // if ExpiresAt is zero time, token doesn't expire (e.g., basic auth)
+	return time.Now().Before(t.ExpiresAt)
 }
 
 // TokenProvider is a token provider.
@@ -38,7 +44,7 @@ func basicAuthorization(username, password string) TokenProvider {
 	return TokenProviderFunc(func(context.Context) (Token, error) {
 		return Token{
 			AccessToken: token,
-			ExpiresAt:   time.Now().Add(time.Hour),
+			ExpiresAt:   time.Time{},
 			Type:        "Basic",
 		}, nil
 	})

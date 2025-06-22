@@ -122,7 +122,7 @@ func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*
 		shouldRetry = c.retryer.Classify(req.Context(), resp, doErr)
 
 		if doErr != nil {
-			c.logger.Debug().Err(err).
+			c.logger.Debug().Err(doErr).
 				Str("method", req.Method).
 				Str("url", req.URL.String()).
 				Msg("failed to execute request")
