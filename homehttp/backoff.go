@@ -6,13 +6,13 @@ import (
 )
 
 type BackoffStrategy interface {
-	Backoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration
+	Backoff(minT, maxT time.Duration, attemptNum int, resp *http.Response) time.Duration
 }
 
-type BackoffStrategyFunc func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration
+type BackoffStrategyFunc func(minT, maxT time.Duration, attemptNum int, resp *http.Response) time.Duration
 
-func (f BackoffStrategyFunc) Backoff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration { //nolint:gocritic
-	return f(min, max, attemptNum, resp)
+func (f BackoffStrategyFunc) Backoff(minT, maxT time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	return f(minT, maxT, attemptNum, resp)
 }
 
 func ConstantBackoff(t time.Duration) BackoffStrategyFunc {
@@ -22,8 +22,8 @@ func ConstantBackoff(t time.Duration) BackoffStrategyFunc {
 }
 
 func LinearBackoff(t time.Duration) BackoffStrategyFunc {
-	return func(min, _ time.Duration, attemptNum int, _ *http.Response) time.Duration {
-		return min + time.Duration(attemptNum)*t
+	return func(minT, _ time.Duration, attemptNum int, _ *http.Response) time.Duration {
+		return minT + time.Duration(attemptNum)*t
 	}
 }
 

@@ -3,13 +3,14 @@ package homehttp
 import (
 	"context"
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClientDoWithRetry(t *testing.T) {
@@ -176,11 +177,11 @@ func TestClientDoWithRetry(t *testing.T) {
 
 				// check if the request body is not corrupted
 				actualPayload, err := io.ReadAll(r.Body)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 
 				var actualRequest string
 				err = json.Unmarshal(actualPayload, &actualRequest)
-				require.NoError(t, err)
+				assert.NoError(t, err)
 
 				assert.Equal(t, tt.expectedRequestBody, actualRequest, "request body should match")
 

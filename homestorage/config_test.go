@@ -10,5 +10,5 @@ func Test_newDefaultConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := newDefaultConfig()
-	assert.Greater(t, cfg.capacity, uint64(0))
+	assert.Positive(t, cfg.capacity, "capacity should be positive")
 }

@@ -3,10 +3,11 @@ package homehttp
 import (
 	"bytes"
 	"context"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +28,7 @@ func TestNewRequest_WithBody(t *testing.T) {
 	buf.ReadFrom(req.Body)
 	actual := strings.TrimSuffix(buf.String(), "\n") // trim trailing newline
 
-	assert.Equal(t, `{"key":"value"}`, actual)
+	assert.JSONEq(t, `{"key":"value"}`, actual)
 }
 
 func TestNewRequest_WithoutBody(t *testing.T) {
@@ -39,7 +40,7 @@ func TestNewRequest_WithoutBody(t *testing.T) {
 	assert.NotNil(t, req)
 	assert.Equal(t, http.MethodGet, req.Method)
 	assert.Equal(t, "http://localhost", req.URL.String())
-	assert.Equal(t, "", req.Header.Get("Content-Type"))
+	assert.Empty(t, req.Header.Get("Content-Type"))
 }
 
 func TestNewRequest_InvalidURL(t *testing.T) {

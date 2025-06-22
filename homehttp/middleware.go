@@ -2,8 +2,9 @@ package homehttp
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 var _ http.RoundTripper = (*roundTripperFunc)(nil)

@@ -156,7 +156,7 @@ func TestInMemoryStorage_All(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			assert.Equal(t, len(tt.args), len(tt.s.All()))
+			assert.Len(t, tt.s.All(), len(tt.args))
 		})
 	}
 }
@@ -188,8 +188,8 @@ func TestInMemoryStorage_Upsert(t *testing.T) {
 	s := NewInMemoryStorage[int](WithCapacity(100))
 
 	_ = s.Add("key", 1)
-	s.Upsert("key", 2)  // update existing key
-	s.Upsert("key2", 3) // add new key
+	require.NoError(t, s.Upsert("key", 2))  // update existing key
+	require.NoError(t, s.Upsert("key2", 3)) // add new key
 
 	got, err := s.Get("key")
 
@@ -398,4 +398,80 @@ func TestInMemoryStorage_Count(t *testing.T) {
 			assert.Equalf(t, tt.want, tt.i.Count(), "Count()")
 		})
 	}
+}
+
+// TestInMemoryStorage_Upsert_CapacityRespected verifies that Upsert respects capacity limits
+func TestInMemoryStorage_Upsert_CapacityRespected(t *testing.T) {
+	t.Parallel()
+
+	s := NewInMemoryStorage[int](WithCapacity(2))
+
+	// Fill storage to capacity with Add
+	require.NoError(t, s.Add("key1", 1))
+	require.NoError(t, s.Add("key2", 2))
+
+	// Verify we're at capacity
+	assert.Equal(t, uint64(2), s.Count())
+	require.ErrorIs(t, s.Add("key3", 3), ErrCapacityExceeded)
+
+	// FIXED: Upsert should now respect capacity when adding new keys
+	require.ErrorIs(t, s.Upsert("key3", 3), ErrCapacityExceeded)
+	require.ErrorIs(t, s.Upsert("key4", 4), ErrCapacityExceeded)
+
+	// Storage should remain at capacity
+	assert.Equal(t, uint64(2), s.Count())
+
+	// Verify the new keys were not stored
+	_, err := s.Get("key3")
+	require.ErrorIs(t, err, ErrNotFound)
+
+	_, err = s.Get("key4")
+	require.ErrorIs(t, err, ErrNotFound)
+
+	// But existing keys can still be updated
+	require.NoError(t, s.Upsert("key1", 10))
+	val, err := s.Get("key1")
+	require.NoError(t, err)
+	assert.Equal(t, 10, val)
+}
+
+// TestInMemoryStorage_ConcurrentUpsert verifies concurrent Upsert operations respect capacity
+func TestInMemoryStorage_ConcurrentUpsert(t *testing.T) {
+	t.Parallel()
+
+	const (
+		numGoroutines   = 20
+		opsPerGoroutine = 10
+	)
+
+	s := NewInMemoryStorage[int](WithCapacity(50))
+
+	// pre-populate some entries
+	for i := 0; i < 25; i++ {
+		require.NoError(t, s.Add(fmt.Sprintf("existing%d", i), i))
+	}
+
+	var wg sync.WaitGroup
+
+	// Launch many goroutines doing concurrent upserts
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+
+		go func(goroutineID int) {
+			defer wg.Done()
+
+			for j := 0; j < opsPerGoroutine; j++ {
+				key := fmt.Sprintf("key%d_%d", goroutineID, j)
+				// some operations will succeed, others will hit capacity limit
+				_ = s.Upsert(key, goroutineID*1000+j)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	count := s.Count()
+	t.Logf("Final count: %d (capacity: 50)", count)
+
+	assert.LessOrEqual(t, count, uint64(50), "Storage should not exceed capacity")
 }

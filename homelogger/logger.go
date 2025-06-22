@@ -32,7 +32,7 @@ func NewDefault(appName string) *zerolog.Logger {
 }
 
 func NewNoOp() *zerolog.Logger {
-	logger := zerolog.New(nil)
+	logger := zerolog.Nop()
 
 	return &logger
 }

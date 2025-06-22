@@ -11,7 +11,7 @@ func TestEnvOverride(t *testing.T) {
 		value := "TEST_VALUE"
 		originalValue := "ORIGINAL_VALUE"
 
-		_ = os.Setenv(key, originalValue) //nolint:tenv
+		_ = os.Setenv(key, originalValue)
 		defer os.Unsetenv(key)
 
 		closer := EnvOverride(t, key, value)

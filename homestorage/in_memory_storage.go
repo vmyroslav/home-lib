@@ -55,7 +55,7 @@ func (i *InMemoryStorage[T]) Add(key string, value T) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
-	if len(i.storage) >= int(i.capacity) {
+	if uint64(len(i.storage)) >= i.capacity {
 		return ErrCapacityExceeded
 	}
 
@@ -86,11 +86,26 @@ func (i *InMemoryStorage[T]) Get(key string) (T, error) {
 
 // Upsert updates an element in the storage by the given key.
 // If the element is not found, it is added to the storage.
-func (i *InMemoryStorage[T]) Upsert(key string, value T) {
+// Returns ErrCapacityExceeded if adding a new key would exceed capacity.
+func (i *InMemoryStorage[T]) Upsert(key string, value T) error {
 	i.mutex.Lock()
 	defer i.mutex.Unlock()
 
+	// Check if key already exists
+	if _, exists := i.storage[key]; exists {
+		// Update existing key - no capacity check needed
+		i.storage[key] = value
+		return nil
+	}
+
+	// Adding new key - check capacity
+	if uint64(len(i.storage)) >= i.capacity {
+		return ErrCapacityExceeded
+	}
+
 	i.storage[key] = value
+
+	return nil
 }
 
 func (i *InMemoryStorage[T]) Replace(key string, value T) error {
