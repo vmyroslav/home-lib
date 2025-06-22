@@ -234,3 +234,65 @@ func TestClientDoWithRetry(t *testing.T) {
 		})
 	}
 }
+
+// TestClientRetryBackoffTiming verifies that retry wait times are properly configured and used
+func TestClientRetryBackoffTiming(t *testing.T) {
+	t.Parallel()
+
+	var requestTimes []time.Time
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestTimes = append(requestTimes, time.Now())
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("server error"))
+	}))
+	defer server.Close()
+
+	// create client with specific retry configuration
+	minWait := 50 * time.Millisecond
+	maxWait := 200 * time.Millisecond
+	client := NewClient(
+		WithRetryStrategy(RetryOn500x),
+		WithMaxRetries(2), // Will make 3 requests total (initial + 2 retries)
+		WithRetryWaitTimes(minWait, maxWait),
+		WithBackoffStrategy(LinearBackoff(25*time.Millisecond)), // Incremental backoff
+	)
+
+	start := time.Now()
+	_, err := client.DoJSON(context.Background(), "GET", server.URL, nil)
+	duration := time.Since(start)
+
+	require.Error(t, err)
+
+	assert.Len(t, requestTimes, 3, "Expected 3 requests (initial + 2 retries)")
+
+	// Verify minimum delays between requests
+	if len(requestTimes) >= 2 {
+		firstDelay := requestTimes[1].Sub(requestTimes[0])
+		assert.GreaterOrEqual(t, firstDelay, minWait, "First retry delay should be at least minWait")
+	}
+
+	if len(requestTimes) >= 3 {
+		secondDelay := requestTimes[2].Sub(requestTimes[1])
+		assert.GreaterOrEqual(t, secondDelay, minWait, "Second retry delay should be at least minWait")
+	}
+
+	// Total duration should include retry delays
+	expectedMinDuration := 2 * minWait // 2 retry delays
+	assert.GreaterOrEqual(t, duration, expectedMinDuration, "Total duration should include retry delays")
+}
+
+// TestClientRetryWaitCustom verifies that custom retry wait times are properly set
+func TestClientRetryWaitCustom(t *testing.T) {
+	t.Parallel()
+
+	customMin := 250 * time.Millisecond
+	customMax := 5 * time.Second
+
+	client := NewClient(
+		WithRetryWaitTimes(customMin, customMax),
+	)
+
+	assert.Equal(t, customMin, client.retryWaitMin, "retryWaitMin should match custom value")
+	assert.Equal(t, customMax, client.retryWaitMax, "retryWaitMax should match custom value")
+}

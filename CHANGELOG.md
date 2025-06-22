@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- **homestorage**: Fixed apacity violation in `InMemoryStorage.Upsert()` method
+- **homestorage**: Fixed capacity violation in `InMemoryStorage.Upsert()` method
   - `Upsert()` now properly checks capacity limits when adding new keys
   - **BREAKING CHANGE**: `Upsert()` method signature changed from `func(string, T)` to `func(string, T) error`
   - Returns `ErrCapacityExceeded` when attempting to add new keys beyond configured capacity
@@ -17,9 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `sync.RWMutex` to prevent race conditions during concurrent access
   - All methods (`Add`, `AddMany`, `AddOrdered`, `AddItem`, `Get`) are now thread-safe
   - Fixed potential data corruption in `prioritySum` field during concurrent operations
+- **homehttp**: Fixed incomplete retry logic causing ineffective backoff delays
+  - `retryWaitMin` and `retryWaitMax` fields are now properly initialized with default values
+  - Backoff strategies now receive correct min/max wait times instead of zero values
+  - Added default retry wait times: 100ms minimum, 3s maximum
+  - Fixed retry mechanism that was previously not applying proper delays between attempts
 
 ### Added
 - **homestorage**: Test suites for concurrency and capacity violations
+- **homehttp**: New client configuration options for retry timing
+  - `WithRetryWaitTimes(min, max)` to set both minimum and maximum retry wait times
+  - `WithMinRetryWait(duration)` to set minimum wait time between retries
+  - `WithMaxRetryWait(duration)` to set maximum wait time between retries
+  - Comprehensive test suite for retry backoff timing validation
 
 ## [v0.1.0] - 2024-02-04
 

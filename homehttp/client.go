@@ -13,10 +13,12 @@ import (
 )
 
 const (
-	defaultUserAgent   = "homehttp.Client"
-	defaultTimeout     = 30 * time.Second
-	defaultRetries     = 0
-	defaultBackoffTime = 300 * time.Millisecond
+	defaultUserAgent    = "homehttp.Client"
+	defaultTimeout      = 30 * time.Second
+	defaultRetries      = 0
+	defaultBackoffTime  = 300 * time.Millisecond
+	defaultMinRetryWait = 100 * time.Millisecond
+	defaultMaxRetryWait = 3 * time.Second
 
 	respSizeLimit = int64(10 * 1024 * 1024) // 10MB
 )
@@ -48,7 +50,9 @@ func NewClient(opts ...ClientOption) *Client {
 		Retryer:    NoRetry,
 		MaxRetries: defaultRetries,
 
-		Backoff: ConstantBackoff(defaultBackoffTime),
+		Backoff:      ConstantBackoff(defaultBackoffTime),
+		MinRetryWait: defaultMinRetryWait,
+		MaxRetryWait: defaultMaxRetryWait,
 	}
 
 	for _, o := range opts {
@@ -82,10 +86,12 @@ func buildClient(cfg *clientConfig) *Client {
 			Timeout:   cfg.Timeout,
 			Transport: chainRoundTrippers(http.DefaultTransport, cfg.TransportMiddlewares...),
 		},
-		logger:     cfg.Logger,
-		retryer:    cfg.Retryer,
-		backoff:    cfg.Backoff,
-		maxRetries: cfg.MaxRetries,
+		logger:       cfg.Logger,
+		retryer:      cfg.Retryer,
+		backoff:      cfg.Backoff,
+		retryWaitMin: cfg.MinRetryWait,
+		retryWaitMax: cfg.MaxRetryWait,
+		maxRetries:   cfg.MaxRetries,
 	}
 }
 

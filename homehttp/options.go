@@ -95,3 +95,25 @@ func WithBackoffStrategy(strategy BackoffStrategy) ClientOption {
 func WithConstantBackoff(t time.Duration) ClientOption {
 	return WithBackoffStrategy(ConstantBackoff(t))
 }
+
+// WithRetryWaitTimes sets the minimum and maximum wait times for retries.
+func WithRetryWaitTimes(min, max time.Duration) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.MinRetryWait = min
+		c.MaxRetryWait = max
+	})
+}
+
+// WithMinRetryWait sets the minimum wait time between retries.
+func WithMinRetryWait(min time.Duration) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.MinRetryWait = min
+	})
+}
+
+// WithMaxRetryWait sets the maximum wait time between retries.
+func WithMaxRetryWait(max time.Duration) ClientOption {
+	return clientOptionFn(func(c *clientConfig) {
+		c.MaxRetryWait = max
+	})
+}
