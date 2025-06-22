@@ -64,3 +64,15 @@ func WithApplicationName(n string) Option {
 		*logger = l
 	})
 }
+
+// WithConsoleWriter enables pretty, human-readable console output with colors.
+func WithConsoleWriter(out io.Writer) Option {
+	return optionFn(func(logger *zerolog.Logger) {
+		consoleWriter := zerolog.ConsoleWriter{
+			Out:        out,
+			TimeFormat: "15:04:05",
+		}
+		l := logger.Output(consoleWriter)
+		*logger = l
+	})
+}

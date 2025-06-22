@@ -44,6 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added tests for basic auth token expiration behavior
   - Added tests for `Token.IsValid()` method with various scenarios
   - Improved test coverage for authentication mechanisms
+- **homelogger**: Comprehensive test coverage and enhanced functionality
+  - Added complete test suite covering all logger options and configurations
+  - Added console/pretty output formatting options (`WithConsoleWriter`, `WithPrettyLogging`)
+  - Added environment-specific logger presets (`NewDevelopment`, `NewProduction`)
+  - Development logger with colored console output and debug level logging
+  - Production logger optimized for structured JSON logging in production environments
 
 ## [v0.1.0] - 2024-02-04
 
@@ -79,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dependabot for automatic dependency updates
 
 ### Documentation
-- Comprehensive README with installation and usage instructions
+- README with installation and usage instructions
 - Package documentation with examples
 - CI badges and code quality indicators
 - MIT license
