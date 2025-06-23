@@ -5,9 +5,9 @@ on:
     branches:
       - main
   pull_request:
-
-env:
-  GO_VERSION: 1.22
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   build:
@@ -17,13 +17,13 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
 
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
 
       - name: Test
         run: |
