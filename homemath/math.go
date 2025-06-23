@@ -11,11 +11,11 @@ import (
 var (
 	rng  *rand.Rand
 	once sync.Once
+	mu   sync.Mutex
 )
 
 func initRNG() {
-	// Note: Using math/rand for convenience random numbers, not cryptographic security
-	//nolint:gosec // G404: non-cryptographic random number generation is intentional
+	//nolint:gosec
 	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 }
 
@@ -81,6 +81,9 @@ func RandInt(n int) int {
 		return 0
 	}
 
+	mu.Lock()
+	defer mu.Unlock()
+
 	return rng.Intn(n)
 }
 
@@ -92,6 +95,9 @@ func RandIntRange(minVal, maxVal int) int {
 	if minVal >= maxVal {
 		return minVal
 	}
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	return rng.Intn(maxVal-minVal+1) + minVal
 }

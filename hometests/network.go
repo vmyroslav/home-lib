@@ -2,10 +2,10 @@ package hometests
 
 import (
 	"fmt"
-	"math/rand"
 	"net"
 	"testing"
-	"time"
+
+	"github.com/vmyroslav/home-lib/homemath"
 )
 
 // RandomPort generates a random port, trying up to maxRetries times.
@@ -14,7 +14,7 @@ func RandomPort(t *testing.T) int {
 
 	maxRetries := 5
 
-	port, err := randomPort(rand.New(rand.NewSource(time.Now().UnixNano())), defaultListener{}, maxRetries) //nolint:gosec
+	port, err := randomPort(&homemathRandomizer{}, defaultListener{}, maxRetries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,4 +49,11 @@ type defaultListener struct{}
 
 func (d defaultListener) Listen(network, address string) (net.Listener, error) {
 	return net.Listen(network, address)
+}
+
+// homemathRandomizer implements the randomizer interface using homemath functions.
+type homemathRandomizer struct{}
+
+func (h *homemathRandomizer) Intn(n int) int {
+	return homemath.RandInt(n)
 }

@@ -54,6 +54,8 @@ linters:
         - style
         - experimental
         - opinionated
+      disabled-checks:
+        - unnamedResult
     govet:
       enable:
         - fieldalignment
@@ -84,6 +86,7 @@ linters:
           - goconst
           - gosec
           - govet
+          - noctx
         path: _test\.go
     paths:
       - mock_.+\.go

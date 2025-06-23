@@ -13,9 +13,12 @@ tasks:
   imports:
     cmds:
       - goimports -w .
-  fumpt:
+  fmt:
+    desc: Format Go files
     cmds:
+      - go fmt ./...
       - find . -name '*.go' -type f -exec gofumpt -w {} +
+      - golangci-lint run --fix
   clean:
     desc: Clean up
     cmds:
