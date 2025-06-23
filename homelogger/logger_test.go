@@ -61,6 +61,7 @@ func TestNewNoOp(t *testing.T) {
 	assert.NotNil(t, logger)
 
 	var buf bytes.Buffer
+
 	logger.Info().Msg("this should not appear")
 	logger.Error().Msg("this should also not appear")
 
@@ -155,6 +156,7 @@ func TestWithApplicationName(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	appName := "my-test-app"
 	logger := New(
 		WithOutput(&buf),

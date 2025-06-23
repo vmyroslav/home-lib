@@ -241,8 +241,9 @@ func TestClientRetryBackoffTiming(t *testing.T) {
 
 	var requestTimes []time.Time
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		requestTimes = append(requestTimes, time.Now())
+
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte("server error"))
 	}))

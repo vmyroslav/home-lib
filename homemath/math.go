@@ -1,8 +1,23 @@
 package homemath
 
 import (
+	"math/rand"
+	"sync"
+	"time"
+
 	"golang.org/x/exp/constraints"
 )
+
+var (
+	rng  *rand.Rand
+	once sync.Once
+)
+
+func initRNG() {
+	// Note: Using math/rand for convenience random numbers, not cryptographic security
+	//nolint:gosec // G404: non-cryptographic random number generation is intentional
+	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
 
 func Max[T constraints.Ordered](s ...T) T {
 	if len(s) == 0 {
@@ -34,4 +49,49 @@ func Min[T constraints.Ordered](s ...T) T {
 	}
 
 	return m
+}
+
+// Sum returns the sum of all values in s.
+func Sum[T constraints.Integer | constraints.Float](s ...T) T {
+	var sum T
+	for _, v := range s {
+		sum += v
+	}
+
+	return sum
+}
+
+// SumSlice returns the sum of all values in the slice.
+// This is more efficient than Sum for large slices as it avoids variadic overhead.
+func SumSlice[T constraints.Integer | constraints.Float](s []T) T {
+	var sum T
+	for _, v := range s {
+		sum += v
+	}
+
+	return sum
+}
+
+// RandInt returns a random integer in the range [0, n).
+// Returns 0 if n <= 0.
+func RandInt(n int) int {
+	once.Do(initRNG)
+
+	if n <= 0 {
+		return 0
+	}
+
+	return rng.Intn(n)
+}
+
+// RandIntRange returns a random integer in the range [min, max].
+// Returns min if min >= max.
+func RandIntRange(minVal, maxVal int) int {
+	once.Do(initRNG)
+
+	if minVal >= maxVal {
+		return minVal
+	}
+
+	return rng.Intn(maxVal-minVal+1) + minVal
 }

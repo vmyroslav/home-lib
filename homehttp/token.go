@@ -19,9 +19,11 @@ func (t Token) IsValid() bool {
 	if t.AccessToken == "" {
 		return false
 	}
+
 	if t.ExpiresAt.IsZero() {
 		return true
 	} // if ExpiresAt is zero time, token doesn't expire (e.g., basic auth)
+
 	return time.Now().Before(t.ExpiresAt)
 }
 

@@ -50,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added environment-specific logger presets (`NewDevelopment`, `NewProduction`)
   - Development logger with colored console output and debug level logging
   - Production logger optimized for structured JSON logging in production environments
+- **homemath**: Expanded mathematical utilities and enhanced test coverage
+  - Added `Sum()` and `SumSlice()` functions for efficient summation of numeric values
+  - Added random number generation functions with thread-safe initialization
+    - `RandInt(n)` for random integers in range [0, n)
+    - `RandIntRange(min, max)` for random integers in range [min, max]
+  - Added test coverage for all mathematical functions
 
 ## [v0.1.0] - 2024-02-04
 
