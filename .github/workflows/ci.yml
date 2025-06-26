@@ -30,7 +30,7 @@ jobs:
           go test -timeout=60s -race -covermode=atomic -coverprofile=$GITHUB_WORKSPACE/profile.cov ./...
 
       - name: Submit coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./profile.cov
           slug: ${{ env.GITHUB_REPOSITORY }}
