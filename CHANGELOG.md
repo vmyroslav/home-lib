@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.0] - 2025-07-01
+
 ### Fixed
 - **homestorage**: Fixed capacity violation in `InMemoryStorage.Upsert()` method
   - `Upsert()` now properly checks capacity limits when adding new keys
