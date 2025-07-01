@@ -54,7 +54,6 @@ func TestRandomPort(t *testing.T) {
 			mockListener := &mockListener{listenErr: tc.listenErr, failedCallsNum: tc.retriesCount}
 
 			port, err := randomPort(mockRand, mockListener, tc.maxRetries)
-
 			if (err != nil) != tc.wantErr {
 				t.Errorf("RandomPort() error = %v, wantErr %v", err, tc.wantErr)
 			}

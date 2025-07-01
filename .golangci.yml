@@ -41,7 +41,7 @@ linters:
     - unparam
     - unused
     - whitespace
-    - wsl
+    - wsl_v5
   settings:
     errcheck:
       check-type-assertions: true
@@ -96,6 +96,8 @@ linters:
 formatters:
   enable:
     - gofmt
+    - gofumpt
+    - goimports
   exclusions:
     generated: lax
     paths:

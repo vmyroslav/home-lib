@@ -170,7 +170,8 @@ func TestInMemoryStorage_ConcurrentAdd(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		go func(i int) { //nolint:wsl
+
+		go func(i int) {
 			defer wg.Done()
 
 			_ = s.Add(fmt.Sprintf("key%d", i), i)

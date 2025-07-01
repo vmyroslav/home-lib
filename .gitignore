@@ -1,3 +1,13 @@
+# FS specific ignores
 /.DS_Store
+
+# IDE ignores
 /.idea/
+CLAUDE.md
+/.claude/
+
+# Tests and artifacts
 profile.cov
+
+release_notes.md
+/Taskfile.yml

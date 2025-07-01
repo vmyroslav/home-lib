@@ -1,0 +1,62 @@
+version: '3'
+
+includes:
+  internal:
+    taskfile: ./Taskfile.internal.yml
+    internal: true
+  ci:
+    taskfile: ./Taskfile.ci.yml
+    internal: false
+
+tasks:
+  default:
+    cmds:
+      - task --list-all
+  lint:
+    cmds:
+      - golangci-lint run -c .golangci.yml
+  test:
+    cmds:
+      - go test -timeout=60s -race -covermode=atomic -coverprofile=profile.cov ./...
+  imports:
+    cmds:
+      - goimports -w .
+  fmt:
+    desc: Format project files
+    cmds:
+      - find . -name '*.go' -type f -exec gofumpt -w {} +
+      - golangci-lint run --fix
+  clean:
+    desc: Clean up
+    cmds:
+      - go mod tidy
+      - task: fmt
+  update-deps:
+    desc: Update dependencies
+    cmds:
+      - go get -u -d ./...
+
+  ci:prepare-release:
+    desc: "Prepares release artifacts after running quality checks."
+    summary: |
+      Usage: task prepare-release VERSION=1.1.0
+      1. Runs linters and tests.
+      2. Extracts release notes from CHANGELOG.md.
+      3. Updates CHANGELOG.md with the new version tag.
+    vars:
+      VERSION: '{{.VERSION}}'
+    preconditions:
+      - sh: 'test -n "{{.VERSION}}"'
+        msg: "VERSION variable is required. Usage: task ci:prepare-release VERSION=1.2.3"
+      - sh: 'echo "{{.VERSION}}" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+$"'
+        msg: "Version format must be 'X.Y.Z'. Passed: {{.VERSION}}"
+      - sh: "test -n \"$(awk '/^## \\[Unreleased\\]/{flag=1; next} /^## \\[/{flag=0} flag' CHANGELOG.md)\""
+        msg: "❌ The [Unreleased] section in CHANGELOG.md is empty. Nothing to release."
+    cmds:
+      - task: ci:check-version-bump
+        vars: { VERSION: "{{.VERSION}}" }
+      - task: lint
+      - task: test
+      - task: ci:changelog:extract
+      - task: ci:changelog:update
+        vars: { VERSION: "v{{.VERSION}}" }

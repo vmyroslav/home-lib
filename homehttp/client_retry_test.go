@@ -180,6 +180,7 @@ func TestClientDoWithRetry(t *testing.T) {
 				assert.NoError(t, err)
 
 				var actualRequest string
+
 				err = json.Unmarshal(actualPayload, &actualRequest)
 				assert.NoError(t, err)
 

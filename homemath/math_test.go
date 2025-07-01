@@ -15,6 +15,7 @@ func TestMin_Max_Ints(t *testing.T) {
 		wantMax T
 		wantMin T
 	}
+
 	tests := []testCase[int]{ //nolint:wsl
 		{
 			name:    "MinMax of empty slice",

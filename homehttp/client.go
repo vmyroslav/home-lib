@@ -119,8 +119,8 @@ func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*
 		}
 
 		resp, doErr = c.baseClient.Do(req)
-		shouldRetry = c.retryer.Classify(req.Context(), resp, doErr)
 
+		shouldRetry = c.retryer.Classify(req.Context(), resp, doErr)
 		if doErr != nil {
 			c.logger.Debug().Err(doErr).
 				Str("method", req.Method).

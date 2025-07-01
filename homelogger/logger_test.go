@@ -18,6 +18,7 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, logger)
 
 	var buf bytes.Buffer
+
 	logger = New(
 		WithOutput(&buf),
 		WithLevel(zerolog.WarnLevel),
@@ -73,6 +74,7 @@ func TestWithLevel(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithOutput(&buf),
 		WithLevel(zerolog.ErrorLevel),
@@ -94,6 +96,7 @@ func TestWithOutput(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(WithOutput(&buf))
 
 	logger.Info().Msg("test output")
@@ -106,6 +109,7 @@ func TestWithCaller(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithOutput(&buf),
 		WithCaller(),
@@ -123,6 +127,7 @@ func TestWithTime(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithOutput(&buf),
 		WithTime(),
@@ -139,6 +144,7 @@ func TestWithStack(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithOutput(&buf),
 		WithStack(),
@@ -175,6 +181,7 @@ func TestMultipleOptions(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithOutput(&buf),
 		WithLevel(zerolog.InfoLevel),
@@ -189,6 +196,7 @@ func TestMultipleOptions(t *testing.T) {
 
 	// Parse as JSON to verify structure
 	var logEntry map[string]interface{}
+
 	err := json.Unmarshal([]byte(strings.TrimSpace(output)), &logEntry)
 	require.NoError(t, err)
 
@@ -215,6 +223,7 @@ func TestLoggerLevels(t *testing.T) {
 	for _, level := range levels {
 		t.Run(level.String(), func(t *testing.T) {
 			var buf bytes.Buffer
+
 			logger := New(
 				WithOutput(&buf),
 				WithLevel(level),
@@ -253,6 +262,7 @@ func TestWithConsoleWriter(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithConsoleWriter(&buf),
 		WithLevel(zerolog.InfoLevel),
@@ -270,6 +280,7 @@ func TestWithPrettyLogging(t *testing.T) {
 	t.Parallel()
 
 	var buf bytes.Buffer
+
 	logger := New(
 		WithConsoleWriter(&buf),
 		WithLevel(zerolog.InfoLevel),
