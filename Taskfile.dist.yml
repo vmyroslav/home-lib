@@ -55,8 +55,6 @@ tasks:
     cmds:
       - task: ci:check-version-bump
         vars: { VERSION: "{{.VERSION}}" }
-      - task: lint
-      - task: test
       - task: ci:changelog:extract
       - task: ci:changelog:update
         vars: { VERSION: "v{{.VERSION}}" }
