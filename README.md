@@ -15,6 +15,7 @@
     - [Math](#Math)
     - [Storage](#Storage)
     - [Logging](#Logging)
+    - [Signaling](#Signaling)
     - [Tests](#Tests)
 
 ## Prerequisites
@@ -128,6 +129,96 @@ logger := homelogger.New(homelogger.LevelInfo)
 logger.Info("Processing request", homelogger.Field("user_id", 123))
 logger.Error("Failed to process", homelogger.Field("error", err))
 ```
+
+### Signaling
+Thread-safe signaling system with non-blocking operations and concurrent delivery for applications.
+
+```go
+import (
+    "context"
+    "fmt"
+    "time"
+    
+    "github.com/vmyroslav/home-lib/homesignal"
+    "github.com/vmyroslav/home-lib/homelogger"
+)
+
+// Create configuration with functional options
+cfg := homesignal.NewConfig(
+    homesignal.WithPeriod(100 * time.Millisecond),
+    homesignal.WithBufferSize(10),
+    homesignal.WithLogger(homelogger.NewNoOp()),
+)
+
+// Create a scheduler for string signals - choose implementation:
+scheduler := homesignal.NewBrokerScheduler[string](cfg)      // concurrent delivery
+// OR
+// scheduler := homesignal.NewSequentialScheduler[string](cfg) // sequential delivery
+
+// Subscribe to receive signals
+subscription := scheduler.Subscribe()
+
+// Start the scheduler with a signal factory function
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+
+go func() {
+    err := scheduler.Start(ctx, func() string {
+        return fmt.Sprintf("tick-%d", time.Now().Unix())
+    })
+    if err != nil {
+        fmt.Printf("Scheduler error: %v\n", err)
+    }
+}()
+
+// Receive signals from subscription
+for {
+    signal, ok := subscription.Next()
+    if !ok {
+        break // channel closed
+    }
+    fmt.Printf("Received: %s\n", signal)
+}
+
+// Clean up
+scheduler.Stop()
+
+// Example with JobSignal for direct signaling
+jobSignal := homesignal.NewJobSignal[int]("worker-1", 5)
+
+// Send signals (non-blocking, drops if buffer full)
+jobSignal.Send(42)
+
+// Send with context (non-blocking, drops if context canceled or buffer full)
+ctx, cancel = context.WithTimeout(context.Background(), time.Second)
+defer cancel()
+jobSignal.SendWithContext(ctx, 100)
+
+// Receive signals
+value, ok := jobSignal.Next()
+if ok {
+    fmt.Printf("Received job: %d\n", value)
+}
+
+// Close when done
+jobSignal.Close()
+```
+
+#### Scheduler Implementations
+
+Choose the implementation that best fits your use case:
+
+- **BrokerScheduler** (recommended):
+  - Concurrent signal delivery prevents head-of-line blocking
+  - Slow subscribers don't affect fast subscribers
+  - Ideal for high-throughput applications with mixed subscriber speeds
+  - Use `NewBrokerScheduler[T](cfg)`
+  
+- **SequentialScheduler**:
+  - Sends signals to all subscribers sequentially in main loop
+  - Lower resource usage but slower subscribers can delay others
+  - Suitable for simple applications with predictable subscriber behavior
+  - Use `NewSequentialScheduler[T](cfg)`
 
 ### Tests
 Testing utilities for HTTP servers, context management, environment variables, and assertions.

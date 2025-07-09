@@ -182,6 +182,7 @@ func (i *InMemoryStorage[T]) Random() (T, error) {
 		if currentIndex == randomIndex {
 			return value, nil
 		}
+
 		currentIndex++
 	}
 

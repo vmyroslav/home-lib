@@ -515,6 +515,7 @@ func TestInMemoryStorage_Random(t *testing.T) {
 
 		// test multiple times to verify randomness
 		foundValues := make(map[string]bool)
+
 		for i := 0; i < 20; i++ {
 			result, err := s.Random()
 			require.NoError(t, err)
@@ -536,13 +537,18 @@ func TestInMemoryStorage_Random(t *testing.T) {
 		}
 
 		var wg sync.WaitGroup
-		const numGoroutines = 10
-		const opsPerGoroutine = 10
+
+		const (
+			numGoroutines   = 10
+			opsPerGoroutine = 10
+		)
 
 		for i := 0; i < numGoroutines; i++ {
 			wg.Add(1)
+
 			go func() {
 				defer wg.Done()
+
 				for j := 0; j < opsPerGoroutine; j++ {
 					_, err := s.Random()
 					assert.NoError(t, err)

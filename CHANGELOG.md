@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `OptionFunc[T]` function type for creating option implementations
   - `ApplyOptions[T]` helper function for applying multiple options
   - Enables consistent option pattern across all packages
+- **homesignal**: New package providing thread-safe signaling system
+  - Generic `JobSignal[T]` for individual signal management with timeout and context support
+  - Generic `Scheduler[T]` interface with two implementations:
+    - `BrokerScheduler[T]` - High-performance concurrent scheduler with parallel signal delivery
+    - `SequentialScheduler[T]` - Simple sequential scheduler for basic use cases
 - **homestorage**: Added `Random()` method to `InMemoryStorage`
   - Returns a randomly selected element from the storage
   - Returns `ErrNotFound` when storage is empty
