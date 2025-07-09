@@ -4,22 +4,16 @@ import (
 	"io"
 
 	"github.com/rs/zerolog"
+
+	"github.com/vmyroslav/home-lib/homeconfig"
 )
 
 // Option sets a parameter for the logger.
-type Option interface {
-	apply(logger *zerolog.Logger)
-}
-
-type optionFn func(cfg *zerolog.Logger)
-
-func (fn optionFn) apply(cfg *zerolog.Logger) {
-	fn(cfg)
-}
+type Option = homeconfig.Option[zerolog.Logger]
 
 // WithLevel sets the logger level.
 func WithLevel(level zerolog.Level) Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.Level(level)
 		*logger = l
 	})
@@ -27,7 +21,7 @@ func WithLevel(level zerolog.Level) Option {
 
 // WithCaller adds the caller to the log messages.
 func WithCaller() Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.With().Caller().Logger()
 		*logger = l
 	})
@@ -35,7 +29,7 @@ func WithCaller() Option {
 
 // WithOutput sets the output writer.
 func WithOutput(output io.Writer) Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.Output(output)
 		*logger = l
 	})
@@ -43,7 +37,7 @@ func WithOutput(output io.Writer) Option {
 
 // WithTime adds the time to the log messages.
 func WithTime() Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.With().Timestamp().Logger()
 		*logger = l
 	})
@@ -51,7 +45,7 @@ func WithTime() Option {
 
 // WithStack adds the stack trace to the log messages.
 func WithStack() Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.With().Stack().Logger()
 		*logger = l
 	})
@@ -59,7 +53,7 @@ func WithStack() Option {
 
 // WithApplicationName adds the application name to the log messages.
 func WithApplicationName(n string) Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		l := logger.With().Str(applicationKey, n).Logger()
 		*logger = l
 	})
@@ -67,7 +61,7 @@ func WithApplicationName(n string) Option {
 
 // WithConsoleWriter enables pretty, human-readable console output with colors.
 func WithConsoleWriter(out io.Writer) Option {
-	return optionFn(func(logger *zerolog.Logger) {
+	return homeconfig.OptionFunc[zerolog.Logger](func(logger *zerolog.Logger) {
 		consoleWriter := zerolog.ConsoleWriter{
 			Out:        out,
 			TimeFormat: "15:04:05",

@@ -25,7 +25,7 @@ func NewInMemoryStorage[T any](opts ...Option) *InMemoryStorage[T] {
 	cfg := newDefaultConfig()
 
 	for _, opt := range opts {
-		opt.apply(cfg)
+		opt.Apply(cfg)
 	}
 
 	return &InMemoryStorage[T]{

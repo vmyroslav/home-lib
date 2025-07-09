@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **homeconfig**: New package providing generic option pattern implementation
+  - Generic `Option[T]` interface for type-safe configuration options
+  - `OptionFunc[T]` function type for creating option implementations
+  - `ApplyOptions[T]` helper function for applying multiple options
+  - Enables consistent option pattern across all packages
+
+### Changed
+- **BREAKING CHANGE**: Option pattern interfaces now use exported `Apply` method instead of `apply`
+  - All option interfaces (`homehttp.ClientOption`, `homelogger.Option`, `homestorage.Option`) now use capitalized `Apply` method
+
 ## [v0.2.0] - 2025-07-01
 
 ### Fixed

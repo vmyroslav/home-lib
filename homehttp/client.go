@@ -56,7 +56,7 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 
 	for _, o := range opts {
-		o.apply(cfg)
+		o.Apply(cfg)
 	}
 
 	return buildClient(cfg)

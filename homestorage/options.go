@@ -1,17 +1,11 @@
 package homestorage
 
-type Option interface {
-	apply(cfg *config)
-}
+import "github.com/vmyroslav/home-lib/homeconfig"
 
-type optionFn func(cfg *config)
-
-func (fn optionFn) apply(cfg *config) {
-	fn(cfg)
-}
+type Option = homeconfig.Option[config]
 
 func WithCapacity(l uint64) Option {
-	return optionFn(func(cfg *config) {
+	return homeconfig.OptionFunc[config](func(cfg *config) {
 		cfg.capacity = l
 	})
 }

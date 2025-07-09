@@ -12,7 +12,7 @@ func New(options ...Option) *zerolog.Logger {
 	logger := zerolog.New(os.Stdout)
 
 	for _, o := range options {
-		o.apply(&logger)
+		o.Apply(&logger)
 	}
 
 	return &logger

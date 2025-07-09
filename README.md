@@ -10,6 +10,7 @@
 - [Prerequisites](#Prerequisites)
 - [Installation](#Installation)
 - [Description](#Description)
+    - [Configuration](#Configuration)
     - [HTTP](#HTTP)
     - [Math](#Math)
     - [Storage](#Storage)
@@ -28,6 +29,53 @@ go get github.com/vmyroslav/home-lib
 This is a collection of packages that I use in my personal projects. 
 I decided to make them public so that I can use them in other projects.
 I do not guarantee that they will be supported and updated, so I do not recommend using them in production.
+
+### Configuration
+Generic option pattern implementation for type-safe configuration across all packages.
+
+```go
+import "github.com/vmyroslav/home-lib/homeconfig"
+
+// Define your configuration struct
+type ServerConfig struct {
+    Port    int
+    Host    string
+    Timeout time.Duration
+}
+
+// Create option functions using the generic pattern
+func WithPort(port int) homeconfig.Option[ServerConfig] {
+    return homeconfig.OptionFunc[ServerConfig](func(c *ServerConfig) {
+        c.Port = port
+    })
+}
+
+func WithHost(host string) homeconfig.Option[ServerConfig] {
+    return homeconfig.OptionFunc[ServerConfig](func(c *ServerConfig) {
+        c.Host = host
+    })
+}
+
+// Use options to configure your service
+func NewServer(opts ...homeconfig.Option[ServerConfig]) *Server {
+    config := &ServerConfig{
+        Port:    8080,  // defaults
+        Host:    "localhost",
+        Timeout: 30 * time.Second,
+    }
+    
+    // Apply all options
+    homeconfig.ApplyOptions(config, opts...)
+    
+    return &Server{config: config}
+}
+
+// Usage
+server := NewServer(
+    WithPort(3000),
+    WithHost("0.0.0.0"),
+)
+```
 
 ### HTTP
 HTTP client with retry logic, customizable backoff strategies, and comprehensive timeout handling.
