@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `OptionFunc[T]` function type for creating option implementations
   - `ApplyOptions[T]` helper function for applying multiple options
   - Enables consistent option pattern across all packages
+- **homestorage**: Added `Random()` method to `InMemoryStorage`
+  - Returns a randomly selected element from the storage
+  - Returns `ErrNotFound` when storage is empty
 
 ### Changed
 - **BREAKING CHANGE**: Option pattern interfaces now use exported `Apply` method instead of `apply`

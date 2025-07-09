@@ -407,29 +407,28 @@ func TestInMemoryStorage_Upsert_CapacityRespected(t *testing.T) {
 
 	s := NewInMemoryStorage[int](WithCapacity(2))
 
-	// Fill storage to capacity with Add
+	// fill storage to capacity
 	require.NoError(t, s.Add("key1", 1))
 	require.NoError(t, s.Add("key2", 2))
 
-	// Verify we're at capacity
+	// verify we're at capacity
 	assert.Equal(t, uint64(2), s.Count())
 	require.ErrorIs(t, s.Add("key3", 3), ErrCapacityExceeded)
 
-	// FIXED: Upsert should now respect capacity when adding new keys
 	require.ErrorIs(t, s.Upsert("key3", 3), ErrCapacityExceeded)
 	require.ErrorIs(t, s.Upsert("key4", 4), ErrCapacityExceeded)
 
-	// Storage should remain at capacity
+	// storage should remain at capacity
 	assert.Equal(t, uint64(2), s.Count())
 
-	// Verify the new keys were not stored
+	// verify the new keys were not stored
 	_, err := s.Get("key3")
 	require.ErrorIs(t, err, ErrNotFound)
 
 	_, err = s.Get("key4")
 	require.ErrorIs(t, err, ErrNotFound)
 
-	// But existing keys can still be updated
+	// but existing keys can still be updated
 	require.NoError(t, s.Upsert("key1", 10))
 	val, err := s.Get("key1")
 	require.NoError(t, err)
@@ -454,7 +453,7 @@ func TestInMemoryStorage_ConcurrentUpsert(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	// Launch many goroutines doing concurrent upserts
+	// launch many goroutines doing concurrent upserts
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
 
@@ -475,4 +474,109 @@ func TestInMemoryStorage_ConcurrentUpsert(t *testing.T) {
 	t.Logf("Final count: %d (capacity: 50)", count)
 
 	assert.LessOrEqual(t, count, uint64(50), "Storage should not exceed capacity")
+}
+
+func TestInMemoryStorage_Random(t *testing.T) {
+	t.Parallel()
+
+	t.Run("empty storage returns error", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewInMemoryStorage[string]()
+
+		_, err := s.Random()
+		assert.ErrorIs(t, err, ErrNotFound)
+	})
+
+	t.Run("single element returns that element", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewInMemoryStorage[string]()
+		require.NoError(t, s.Add("key1", "value1"))
+
+		result, err := s.Random()
+		require.NoError(t, err)
+		assert.Equal(t, "value1", result)
+	})
+
+	t.Run("multiple elements returns one of them", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewInMemoryStorage[string]()
+		expectedValues := map[string]bool{
+			"value1": true,
+			"value2": true,
+			"value3": true,
+		}
+
+		require.NoError(t, s.Add("key1", "value1"))
+		require.NoError(t, s.Add("key2", "value2"))
+		require.NoError(t, s.Add("key3", "value3"))
+
+		// test multiple times to verify randomness
+		foundValues := make(map[string]bool)
+		for i := 0; i < 20; i++ {
+			result, err := s.Random()
+			require.NoError(t, err)
+			assert.True(t, expectedValues[result], "Random returned unexpected value: %s", result)
+			foundValues[result] = true
+		}
+
+		// with 20 attempts, we should have found at least 2 different values (probabilistically very likely)
+		assert.GreaterOrEqual(t, len(foundValues), 2, "Random should return different values over multiple calls")
+	})
+
+	t.Run("concurrent access is safe", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewInMemoryStorage[int]()
+
+		for i := 0; i < 10; i++ {
+			require.NoError(t, s.Add(fmt.Sprintf("key%d", i), i))
+		}
+
+		var wg sync.WaitGroup
+		const numGoroutines = 10
+		const opsPerGoroutine = 10
+
+		for i := 0; i < numGoroutines; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for j := 0; j < opsPerGoroutine; j++ {
+					_, err := s.Random()
+					assert.NoError(t, err)
+				}
+			}()
+		}
+
+		wg.Wait()
+	})
+
+	t.Run("different types work correctly", func(t *testing.T) {
+		t.Parallel()
+
+		// test with integers
+		intStorage := NewInMemoryStorage[int]()
+		require.NoError(t, intStorage.Add("key1", 42))
+		require.NoError(t, intStorage.Add("key2", 100))
+
+		intResult, err := intStorage.Random()
+		require.NoError(t, err)
+		assert.Contains(t, []int{42, 100}, intResult)
+
+		// test with custom struct
+		type Person struct {
+			Name string
+			Age  int
+		}
+
+		personStorage := NewInMemoryStorage[Person]()
+		require.NoError(t, personStorage.Add("p1", Person{Name: "Alice", Age: 30}))
+		require.NoError(t, personStorage.Add("p2", Person{Name: "Bob", Age: 25}))
+
+		personResult, err := personStorage.Random()
+		require.NoError(t, err)
+		assert.Contains(t, []string{"Alice", "Bob"}, personResult.Name)
+	})
 }

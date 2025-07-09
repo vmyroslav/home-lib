@@ -3,6 +3,8 @@ package homestorage
 import (
 	"errors"
 	"sync"
+
+	"github.com/vmyroslav/home-lib/homemath"
 )
 
 var (
@@ -158,4 +160,31 @@ func (i *InMemoryStorage[T]) Count() uint64 {
 	defer i.mutex.RUnlock()
 
 	return uint64(len(i.storage))
+}
+
+// Random returns a random element from the storage.
+// If the storage is empty, ErrNotFound is returned.
+func (i *InMemoryStorage[T]) Random() (T, error) {
+	i.mutex.RLock()
+	defer i.mutex.RUnlock()
+
+	var defaultVal T
+
+	if len(i.storage) == 0 {
+		return defaultVal, ErrNotFound
+	}
+
+	randomIndex := homemath.RandInt(len(i.storage))
+
+	// Iterate through map to get element at random index
+	currentIndex := 0
+	for _, value := range i.storage {
+		if currentIndex == randomIndex {
+			return value, nil
+		}
+		currentIndex++
+	}
+
+	// this should never be reached, but return default as fallback
+	return defaultVal, ErrNotFound
 }
