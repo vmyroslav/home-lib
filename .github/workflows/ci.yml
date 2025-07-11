@@ -34,3 +34,4 @@ jobs:
         with:
           files: ./profile.cov
           slug: ${{ env.GITHUB_REPOSITORY }}
+          token: ${{ secrets.CODECOV_TOKEN }}
