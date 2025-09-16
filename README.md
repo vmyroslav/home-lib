@@ -19,7 +19,7 @@
     - [Tests](#Tests)
 
 ## Prerequisites
-- `Go >= 1.24`
+- `Go >= 1.25`
 
 ## Installation
 ```bash
