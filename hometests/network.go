@@ -48,7 +48,7 @@ type networkListener interface {
 type defaultListener struct{}
 
 func (d defaultListener) Listen(network, address string) (net.Listener, error) {
-	return net.Listen(network, address)
+	return net.Listen(network, address) //nolint:noctx
 }
 
 // homemathRandomizer implements the randomizer interface using homemath functions.
