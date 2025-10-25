@@ -68,3 +68,36 @@ func clientAuthorizationToken(tp TokenProvider) roundTripperMiddleware {
 		})
 	}
 }
+
+// RateLimitBehavior defines how the rate limiter behaves when the limit is reached.
+type RateLimitBehavior int
+
+const (
+	// RateLimitBehaviorWait blocks until the rate limit allows the request.
+	RateLimitBehaviorWait RateLimitBehavior = iota
+
+	// RateLimitBehaviorError returns an error immediately if the rate limit is exceeded.
+	RateLimitBehaviorError
+)
+
+// clientRateLimitStrategy adds rate limiting using a RateLimitStrategy.
+func clientRateLimitStrategy(strategy RateLimitStrategy) roundTripperMiddleware {
+	return func(next http.RoundTripper) http.RoundTripper {
+		return roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			host := req.URL.Host
+
+			// apply rate limiting before the request
+			if err := strategy.Apply(req.Context(), host); err != nil {
+				return nil, err
+			}
+
+			resp, err := next.RoundTrip(req)
+
+			if resp != nil {
+				strategy.Observe(resp)
+			}
+
+			return resp, err
+		})
+	}
+}

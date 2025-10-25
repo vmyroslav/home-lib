@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **homehttp**: Rate-limited HTTP middleware
+  - Added rate limiting capabilities to HTTP client middleware stack
+
 ### Changed
 - Upgraded Go version from 1.24 to 1.25
 

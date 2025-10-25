@@ -111,3 +111,72 @@ func WithMaxRetryWait(maxWait time.Duration) ClientOption {
 		c.MaxRetryWait = maxWait
 	})
 }
+
+// WithRateLimitStrategy configures rate limiting with a custom strategy.
+func WithRateLimitStrategy(strategy RateLimitStrategy) ClientOption {
+	return homeconfig.OptionFunc[clientConfig](func(c *clientConfig) {
+		c.RateLimitStrategy = strategy
+	})
+}
+
+// WithTokenBucketRateLimit configures rate limiting using the token bucket algorithm.
+// rate is the number of requests per second, burst is the maximum burst size.
+//
+// Options can be provided to customize behavior:
+//   - WithScope(RateLimitScopeHost) - apply rate limiting per host
+//   - WithBehavior(RateLimitBehaviorError) - fail fast instead of blocking
+//   - WithAdaptive() - enable adaptive rate limiting based on server responses
+func WithTokenBucketRateLimit(rate float64, burst int, opts ...RateLimitOption) ClientOption {
+	return homeconfig.OptionFunc[clientConfig](func(c *clientConfig) {
+		c.RateLimitStrategy = TokenBucketRateLimit(rate, burst, opts...)
+	})
+}
+
+// WithFixedWindowRateLimit configures rate limiting using a fixed window counter.
+// limit is the maximum number of requests per window, window is the time window duration.
+//
+// Options can be provided to customize behavior:
+//   - WithScope(RateLimitScopeHost) - apply rate limiting per host
+//   - WithBehavior(RateLimitBehaviorError) - fail fast instead of blocking
+//   - WithAdaptive() - enable adaptive rate limiting based on server responses
+func WithFixedWindowRateLimit(limit int, window time.Duration, opts ...RateLimitOption) ClientOption {
+	return homeconfig.OptionFunc[clientConfig](func(c *clientConfig) {
+		c.RateLimitStrategy = FixedWindowRateLimit(limit, window, opts...)
+	})
+}
+
+// WithPerHostTokenBucketRateLimit configures per-host rate limiting using the token bucket algorithm.
+// It applies RateLimitScopeHost by default.
+// Each unique host will have its own independent rate limiter.
+//
+// rate is the number of requests per second, burst is the maximum burst size.
+//
+// Additional options can be provided:
+//   - WithBehavior(RateLimitBehaviorError) - fail fast instead of blocking
+//   - WithAdaptive() - enable adaptive rate limiting based on server responses
+func WithPerHostTokenBucketRateLimit(rate float64, burst int, opts ...RateLimitOption) ClientOption {
+	allOpts := append([]RateLimitOption{WithScope(RateLimitScopeHost)}, opts...)
+	return WithTokenBucketRateLimit(rate, burst, allOpts...)
+}
+
+// WithPerHostFixedWindowRateLimit configures per-host rate limiting using a fixed window counter.
+// It applies RateLimitScopeHost by default.
+// Each unique host will have its own independent rate limiter.
+//
+// limit is the maximum number of requests per window, window is the time window duration.
+//
+// Additional options can be provided:
+//   - WithBehavior(RateLimitBehaviorError) - fail fast instead of blocking
+//   - WithAdaptive() - enable adaptive rate limiting based on server responses
+func WithPerHostFixedWindowRateLimit(limit int, window time.Duration, opts ...RateLimitOption) ClientOption {
+	// Prepend WithScope(RateLimitScopeHost) to the options
+	allOpts := append([]RateLimitOption{WithScope(RateLimitScopeHost)}, opts...)
+	return WithFixedWindowRateLimit(limit, window, allOpts...)
+}
+
+// WithoutRateLimit disables rate limiting for the client.
+func WithoutRateLimit() ClientOption {
+	return homeconfig.OptionFunc[clientConfig](func(c *clientConfig) {
+		c.RateLimitStrategy = NoRateLimitStrategy()
+	})
+}
