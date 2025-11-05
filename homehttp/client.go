@@ -53,6 +53,8 @@ func NewClient(opts ...ClientOption) *Client {
 		Backoff:      ConstantBackoff(defaultBackoffTime),
 		MinRetryWait: defaultMinRetryWait,
 		MaxRetryWait: defaultMaxRetryWait,
+
+		RateLimitStrategy: NoRateLimitStrategy(),
 	}
 
 	for _, o := range opts {
@@ -75,11 +77,17 @@ type clientConfig struct { //nolint:govet
 	MinRetryWait time.Duration
 	MaxRetryWait time.Duration
 
+	RateLimitStrategy RateLimitStrategy
+
 	Logger *zerolog.Logger
 }
 
 func buildClient(cfg *clientConfig) *Client {
-	cfg.TransportMiddlewares = append(cfg.TransportMiddlewares, clientUserAgent(cfg.AppName))
+	cfg.TransportMiddlewares = append(
+		cfg.TransportMiddlewares,
+		clientUserAgent(cfg.AppName),
+		clientRateLimitStrategy(cfg.RateLimitStrategy),
+	)
 
 	return &Client{
 		baseClient: &http.Client{
@@ -132,14 +140,11 @@ func (c *Client) DoJSON(ctx context.Context, method, url string, payload any) (*
 			break
 		}
 
-		// We do this before drainBody because there's no need for the I/O if
-		// we're breaking out
 		remainAtt := c.maxRetries - i
 		if remainAtt <= 0 {
 			break
 		}
 
-		// We're going to retry, consume any response to reuse the connection.
 		if doErr == nil {
 			c.drainBody(resp.Body)
 		}
@@ -186,4 +191,9 @@ func (r ResponseError) Error() string {
 	return fmt.Sprintf("%v %v: %d",
 		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode,
 	)
+}
+
+// Unwrap returns the original error.
+func (r ResponseError) Unwrap() error {
+	return r.Original
 }
