@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.4.0] - 2025-11-06
+
 ### Added
 - **homehttp**: Rate-limited HTTP middleware
   - Added rate limiting capabilities to HTTP client middleware stack
