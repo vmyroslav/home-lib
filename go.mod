@@ -1,6 +1,6 @@
 module github.com/vmyroslav/home-lib
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/google/uuid v1.6.0
@@ -9,7 +9,7 @@ require (
 	github.com/rs/zerolog v1.35.0
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
-	golang.org/x/time v0.14.0
+	golang.org/x/time v0.15.0
 )
 
 require (
